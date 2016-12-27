@@ -3,6 +3,7 @@
 .Trash-*
 Thumbs.db
 
+# Can be created while building locally
 node_modules/*
 
 # Ignore any compiled book
