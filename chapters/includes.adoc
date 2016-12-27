@@ -1,0 +1,7 @@
+// Set experimental to support menus
+:experimental:
+
+// Enable clicking on a section heading to get a link
+:sectlinks:
+
+[[chap]]

@@ -1,0 +1,351 @@
+{% include "../includes.adoc" %}
+= Files & file formats
+
+[.chapter-outline]
+.Chapter outline
+--
+* Image files consist of pixel values and metadata
+* Some file formats are suitable for data to analyze, others for data only to display
+* Metadata necessary for analysis can be lost by saving in a non-scientific file format
+* Compression can be either lossless or lossy
+* Original pixel values can be lost through lossy compression, conversion to RGB, or by removing dimensions
+--
+
+
+== The contents of an image file
+
+An image file stored on computer contains two main things:
+
+1. __Image data__ -- the pixel values (numbers, only numbers)
+2. __Metadata__ -- additional information, such as dimensions, image type, bit-depth, pixel sizes and microscope settings ('data about data')
+
+The image data is clearly important.
+But some pieces of the metadata are essential for the image data to be interpretable at all.
+And if the metadata is incorrect or missing, measurements can also be wrong.
+Therefore files must be saved in formats that preserve both the pixel values and metadata accurately if they are to be suitable for analysis later.
+
+
+
+== File formats
+When it comes to saving files, you have a choice similar to that faced when working with color images: you can either save your data in a file format good for analysis or good for display.
+The former requires a specialist microscopy/scientific format that preserves the metadata, dimensions and pixels exactly.
+For the latter, a general file format is probably preferable for compatibility.
+
+
+=== Microscopy file formats __(ICS, OME-TIFF, LIF, LSM, ND2...)__
+Fortunately, much useful metadata is normally available stored within freshly-acquired images.
+Unfortunately, this usually requires that the images are saved in the particular format of the microscope or acquisition software manufacturer (e.g. ND2 for Nikon, LIF or SCN for Leica, OIB or OIF for Olympus, CZI or ZVI for Zeiss).  And it is quite possible that other software will be unable to read that metadata or, worse still, read it incorrectly or interpret it differently.
+
+
+In Fiji, the job of dealing with most proprietary file formats is given to the LOCI Bioformats pluginfootnote:[This can also be added to ImageJ, see http://loci.wisc.edu/software/bio-formats].
+This attempts to extract the most important metadata, and, if you like, can display its findings for you to check.
+When opening a file using Bioformats, the dialog box shown in Figure <<fig-loci>> appears first and gives some extra options regarding how you want the image to be displayed when it is opened.
+
+[sidebar]
+[[fig-loci, 1]]
+--
+[cols="a"]
+[frame=none, grid=none, halign=center, valign=bottom, width=80%]
+|===
+|image::images/loci_gui.png[]
+|===
+**Figure {counter:figure}:**
+Options when opening a file using the LOCI Bioformats importer.
+--
+
+
+In general, Bioformats does a very good job -- but it does not necessarily get all the metadata in all formats.
+This is why...
+
+[.standout]
+****
+You should always keep the originally acquired files -- and refer to the original acquisition software to confirm the metadata.
+****
+
+The original files should be trustworthy most of the time.
+But it remains good to keep a healthy sense of paranoia, since complications can still arise: perhaps during acquisition there were values that ought to have been input manually (e.g. the objective magnification), without which the metadata is incorrect (e.g. the pixel size is miscalculated).
+This can lead to __wrong__ information stored in the metadata from the beginning.
+So it is necessary to pay close attention at an early stage.
+
+While in many cases an accurate pixel size is the main concern, other metadata can matter sometimes -- such as if you want to estimate the blur of an image (see <<../formation_spatial/formation_spatial.adoc#chap, Blur & the PSF>>), and perhaps reduce it by deconvolution.
+
+
+.The messy state of metadata
+[.info]
+****
+Despite its importance, metadata can be annoyingly slippery and easy to lose.
+New proprietary file formats spring up, and the specifications for the formats might not be released by their creators, which makes it very difficult for other software developers to ensure the files are read properly.
+
+[cols="a"]
+[frame=none, grid=none, halign=center, valign=bottom, width=75%]
+|===
+|image::images/xkcd_standards.png[title="From http://www.xkcd.com/927/", caption="", float=center]
+|===
+
+One significant effort to sort this out and offer a standardized format is being undertaken by the http://www.ome-xml.org/[Open Microscopy Environment (OME)], which is often encountered in the specific file format http://www.ome-xml.org/wiki/OmeTiff/[OME-TIFF].
+While such efforts give some room for hope, it has not yet won universal support among software developers.
+****
+
+
+=== General file formats __(JPEG, PNG, MPEG, AVI, TIFF...)__
+If you save your data in a general format, it should be readable in a lot more software.
+However, there is a fairly good chance your image will be converted to 8-bit and/or RGB color, extra dimensions will be thrown away (leaving you with a 2D image only) and most metadata lost.
+The pixel values might also be compressed -- which could be an even bigger problem.
+
+
+
+=== Compression
+
+There are two main categories of compression: __lossy__ and __lossless__.
+
+1. __Lossy compression__ (e.g. JPEG) saves space by 'simplifying' the pixel values, and converting them into a form that can be stored more concisely.  But this loses information, since the original values cannot be perfectly reconstructed.  It may be fine for photographs if keeping the overall appearance similar is enough, but is terrible for any application in which the exact values matter.
+2. __Lossless compression__ (e.g. PNG, BMP, most types of TIFF, some microscopy formats) saves space by encoding the patterns in the image more efficiently, but in such a way that the original data can be perfectly reconstructed.  No information is lost, but the reductions in file size are usually modest.
+
+Therefore lossless compression should not cause problems, but lossy compression really can.  The general rule is
+
+[.standout]
+****
+If in doubt, avoid compression -- and __really__ avoid JPEG for fluorescence microscopy.
+****
+
+JPEG gets a special mention because it is ubiquitous, and its effects can be particularly ugly (Figure <<fig-compression_eerie>>).  It breaks an image up into little 8 × 8 blocks and then compresses these separately.  Depending upon the amount of compression, you might be able to see these blocks clearly in the final image (Figure <<fig-compression_artifacts>>).
+
+[sidebar]
+[[fig-compression_eerie, 2]]
+--
+[cols="a,a"]
+[frame=none, grid=none, halign=center, valign=bottom]
+|===
+|image::images/compressed_eerie_orig.png[title="Uncompressed image (485 KB)" caption="A: " float=center]
+|image::images/compressed_eerie_jpeg.png[title="JPEG compressed image (10.3 KB)" caption="B: " float=center]
+|===
+**Figure {counter:figure}:**
+The effect of strong JPEG compression on color images.
+The reduction in file size can be dramatic, but the changes to pixel values are irreversible.
+If you have an eerie sense that something might be wrong with an image, or the file size seems too good to be true, be sure to look closely for signs of little artificial square patterns that indicate that it was JPEG compressed once upon a time.
+By contrast, saving (A) as a PNG (which uses lossless compression) would give an image that looks identical to the original, but with a file size of 366 KB.
+--
+
+[sidebar]
+[[fig-compression_artifacts, 3]]
+--
+[cols="a,a,a,a"]
+[frame=none, grid=none, halign=center, valign=bottom]
+|===
+|image::images/comp_tif.png[title="Uncompressed TIFF" caption="A: " float=center]
+|image::images/comp_jpg.png[title="Compressed JPEG" caption="B: " float=center]
+|image::images/comp_tif_sub.png[title="Subtracted TIFF" caption="C: " float=center]
+|image::images/comp_jpg_sub.png[title="Subtracted JPEG" caption="D: " float=center]
+|===
+**Figure {counter:figure}:**
+Using lossy compression can make some analysis impossible.
+The saved images in (A) and (B) look similar.
+However, after subtracting a smoothed version of the image, the square artifacts signifying the effects of JPEG compression are clearly visible in (D), but absent in \(C).
+In later analysis of (B), it would be impossible to know the extent to which you are measuring compression artifacts instead of interesting phenomena.
+--
+
+.Question
+[.question]
+****
+Suppose you have an original image in TIFF format (no compression).  First, you save it as JPEG (lossy compression) to reduce the file size, then close it and throw away the TIFF.  Upon hearing JPEG is bad, you reopen the image and save it as TIFF  once more (no compression), throwing away the JPEG.  How does your final TIFF image look, and what is its file size?
+
+.Answer
+[.solution]
+--
+The final image will look exactly like the JPEG version, but with the same file size as the original TIFF.  As such, it has 'the worst of both worlds'.
+--
+
+****
+
+
+.Compressed TIFFs...?
+[.info]
+****
+The reality of file formats is slightly muddier than this brief discussion might imply.  For example, TIFF (like AVI) is really a container for data, so that a TIFF file __can__ store an image that has been compressed using a lossy technique (but it usually won't), and there is also such a thing as a lossless JPEG.  So in times of doubt it is wise to be cautious, and stick with specialized microscopy file formats for most data.  Nevertheless, when it comes to creating movies, which should be looked at but not analyzed, lossy compression is probably needed to get reasonable file sizes.
+
+Additionally, you can take __any__ file and then compress it losslessly later, e.g. by making a ZIP archive from it.  ImageJ can directly open TIFF files that have been compressed this way.  It can even write them using the menu:File[Save As > ZIP...] command.  This is comparatively safe, but if you want to open the image in another program you will probably have to unzip it first.
+****
+
+
+.File formats for creating figures
+[.info]
+****
+Preparing figures for publication can be a bewildering process.  To begin with, it is necessary to make another distinction between image types, one of which has not been discussed here so far:
+
+* __Bitmaps__. These are composed of individual pixels: e.g. photographs, or all the microscopy images we are concerned with here.
+* __Vector images__. These are composed of lines, curves, shapes or text.  The instructions needed to draw the image (i.e. coordinates, equations, fonts) are stored rather than pixels, and then the image is recreated from these instructions when necessary.
+
+
+If you scale a 2D bitmap image by doubling its width and height, then it will contain four times as many pixels.  Guesses need to be made about how to fill in the extra information properly (which is the problem of __interpolation__), and the result generally looks less sharp than the original.  But if you double the size of a vector image, it is just a matter of updating the maths needed to draw the image accordingly, and the result looks just as sharp as the original.
+
+Vector images are therefore best for things like diagrams, histograms, plots and charts, because they can be resized freely and still look good.  Also, they often have tiny file sizes because only a few instructions to redraw the image need to be kept, whereas a huge number of pixels might be required to store sufficiently nice, sharp text in a bitmap.  But bitmaps are needed for images formed from detecting light, which cannot be reduced to a few simple equations and instructions.
+
+Finally, some versatile file formats, such as PDF or EPS, can store both kinds of image: perhaps a bitmap with some text annotations on top.  If you are including text or diagrams, these formats are generally best.  But if you only have bitmaps without annotations of any kind, then TIFF is probably the most common file format for creating figures.
+
+[sidebar]
+[[fig-vector_bitmap, 4]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center, valign=bottom]
+|===
+|image::images/vb_scientist_orig.png[title="Vector image or bitmap?" caption="A: " float=center]
+|image::images/vb_scientist_vector_labelled.png[title="Enlargement of vector image" caption="B: " float=center]
+|image::images/vb_scientist_bitmap_labelled.png[title="Enlargement of bitmap" caption="C: " float=center]
+|===
+**Figure {counter:figure}:**
+When viewed from afar, it may be difficult to know whether an image is a vector or a bitmap (A) because they can sometimes look identical (although a photograph or micrograph will always be a bitmap).
+However, when enlarged a vector image will remain sharp (B), whereas a bitmap will not \(C).
+--
+
+****
+
+
+
+=== Choosing a file format
+
+The table below summarizes the characteristics of some important file formats.
+Personally, I use ICS/IDS if I am moving files between analysis applications that support it (although you may well find OME-TIFF preferable, depending upon the software involved), and TIFF if I am just using ImageJ or Fiji.
+My favorite file format for most display is PNGfootnote:[If you ever email a Windows Bitmap file (BMP) to the sort of person who has a 'favorite file format', they will judge you for it, and possibly curse you for the time it takes to download.  Unless, perhaps, that person was the designer of the BMP format.  It is not well-compressed like JPEG or PNG, and nor does it contain much of the useful extra information a TIFF can store.], while I use PDF where possible for journal figures.
+
+.Some personal thoughts on file formats
+****
+[cols="1,4", options="header"]
+|===
+| Format
+| Comments
+| ICS/IDS
+| 	 A quite simple format designed for microscopy images, in which the metadata is stored in a text file (`.ics`) and the image data in a separate file (`.ids`).  Both files should always be kept together in the same directory.  The big advantage of this is that __all__ the metadata can be read -- and even edited -- simply by opening it in a text editor (e.g. Wordpad on Windows, TextEdit on a Mac).  Not everything may be stored in the metadata, but at least you can always know precisely what is.
+| ICS2
+| 	 Similar to ICS/IDS, but the text and image data are stored in the same file (`.ics`).  While avoiding the need to keep two files together, this loses the main advantage of being able to easily read the metadata in a text editor.
+| TIFF
+|	ImageJ's default format for saving.  Can be read by some other software, but the metadata might not be correctly understood.
+| OME-TIFF
+| 	The product of an ongoing attempt to standardize the storage of microscopy images and metadata.  See http://www.openmicroscopy.org/
+
+| JPEG
+| 	General, compressed image format for single-channel or RGB color images.  Good for photos, generally very bad for (fluorescence) microscopy.
+| PNG
+| 	Suitable for the same types of images as JPEG, but always using lossless compression.  Good for presentations, and quite good for websites.  Most figures in this very document are PNG.
+| TIFF
+|  The kind of TIFFs written by software like Photoshop are appropriate for journal figures containing bitmaps.  The file size might be larger than for the equivalent PNG.
+
+| PDF
+| A handy format for incorporating both bitmap images and vector annotations.  But take care with the bitmaps, which may or may not be lossily compressed.  PDFs usually look the same no matter which computer is displaying them.  Good for journal figures.
+
+| AVI
+| 	Only for showing movies -- especially on Windows, but should work on other computers.  ImageJ can cope best with uncompressed AVIs.  If trying to decipher a file made by some uncommon format, you can try the free (Windows) software VirtualDub (http://www.virtualdub.org/) to convert it.  Handbrake (http://handbrake.fr/) is alternative free software for converting movies into different formats, and is available for Windows, Mac and Linux.
+| Quicktime (MOV)
+| 	Better supported than AVI on the Mac, but may or may not work on Windows or elsewhere - so best always test it before using a Quicktime movie in an important presentation.
+|===
+****
+
+
+== Dealing with large datasets
+
+Large datasets are always troublesome, and we will not be considering datasets of tens or hundreds of gigabytes here.  But when a file's size is lurking beyond the boundary of what your computer can comfortably handle, one trick for dealing with this is to use a __virtual stack__.
+
+<<../dimensions/dimensions.adoc#chap, Dimensions>> mentioned the (in practice often ignored) distinction between __stacks__ and __hyperstacks__.  Virtual stacks are a whole other idea.  These provide a way to browse through large stacks or hyperstacks without needing to first read all the data into the computer's memory.  Rather, only the currently-displayed 2D image slice is shown.  After moving the slider to look at a different time point, for example, the required image slice is read from its location on the hard disk at that moment.  The major advantage of this is that it allows the contents of huge files to be checked relatively quickly, and it makes it possible to peek into datasets that are too large to be opened completely.
+
+The disadvantage is that ImageJ can appear less responsive when browsing through a virtual stack because of the additional time required to access an image on the hard disk.  Also, be aware that if you process an image that is part of a virtual stack, the processing will be lost when you move to view another part of the dataset!
+
+Virtual stacks are set up either by menu:File[Import > TIFF Virtual Stack...] or choosing the appropriate checkbox when the LOCI Bioformats plugin is used to open an image (see Figure <<fig-loci>>).
+
+
+.Question
+[.question]
+****
+Virtual stacks are one way to avoid out-of-memory errors when dealing with large datasets.  But assuming that you can open an image completely in the normal way, what other ways might you be able to reduce memory requirements during analysis?
+
+__Note:__ You can base your answer here upon exploring ImageJ's menus, or experience in using other software.  Some methods involve a loss of information, but this might be acceptable, depending on the application.
+
+.Answer
+[.solution]
+--
+Here are some suggestions for working with large files, not all of which would be appropriate in all circumstances:
+
+1. Decrease the image bit-depth (often a bad idea, but possibly ok if exact pixel values are not so important)
+2. Crop the image (using the LOCI Bioformats plugin, this can be done as the file is being opened; otherwise, see menu:Image[Crop])
+3. Separate channels and process each independently (see menu:Image[Color > Split Channels])
+4. Resize (i.e. scale down) the image (see menu:Image[Scale...])
+--
+****
+
+
+
+
+.Practical
+[.practical]
+****
+To get a feel for the importance of metadata, you can try opening an image in which it is completely absent.  This is quite tricky, and requires some detective work (or some luck).
+
+Try to open the file `Besenfreunde.ids` using Fiji -- it depicts an odd, and as yet unexplained, scene that I passed on my way to work soon after arriving in Heidelberg.
+This file __only__ contains pixel values, and no metadata.
+It can still be read using the menu:File[Import > Raw...] command, but to do so you will need to figure out the necessary metadata and input the appropriate values.
+
+The following points may help:
+
+* The file contains only a single image, and a single channel.
+* The dimensions (width and height) of the image are each a multiple of 100 pixels.
+* The data is in 8, 16 or 32-bit format (signed or unsigned).
+* There are no offsets or gaps included.
+* The total size of the file is 400 000 bytes.
+
+__Note:__ The option `Little-endian byte order` relates to whether the bytes of 16 or 32-bit images are arranged from the least-to-most significant, or most-to-least significant.  Some types of computer prefer one order, some prefer another, so this is something else the metadata should contain.  The difference is similar to how a perfectly respectable number like __twenty-three__ is (quite ludicrously, in my view) spoken as __three-and-twenty__ in German.
+
+.Answer
+[.solution]
+--
+The file size gives you the
+$$
+\textrm{File size (in bytes)} = \frac{\textrm{width} \times \textrm{height} \times \textrm{bit-depth}}{8}
+$$
+where the division by 8 converts the total number of bits to bytes (since 8 bits make 1 byte).  This can be used to make reasonable starting estimates for the width, height and bit-depth, but figuring out which are correct likely still requires some trial-and-error.  In the end, the settings you need are:
+
+* Image type: 16-bit unsigned
+* Width: 500 pixels
+* Height: 400 pixels
+* Little-endian byte order: False
+
+Using these values in the import should result in a reasonable image.
+
+Now make sure never to lose your metadata, and you do not need to solve such puzzles often in real life.  (Also, any explanations for what exactly was going on in that scene would be welcome.)
+--
+****
+
+[[sec-whole_slide_images]]
+== Addendum: Whole slide images
+
+The first part of this chapter was written at a time when I worked almost exclusively with fluorescence microscopy images.
+In this case, the message (as far as I was concerned) was clear: RGB images and JPEGs are bad, higher bit-depths are good, and virtual stacks can help with memory issues.
+
+I then took up a new position working with whole slide images for digital pathology, for which none of the above is really true.
+In fact, the overwhelming majority of digital pathology images that I have encountered have been - from initial scanning - huge, JPEG-compressed RGB images that cannot even be opened as virtual stacks.
+
+There are two main reasons for this:
+
+* Uncompressed whole slide scans are huge... often up to 40 GB for a single 2D plane.
+* Most (but not all) whole slide scans are brightfield, not fluorescence.
+
+In general, brightfield images are inherently less suitable for quantitative analysis (based on intensity values) than fluorescence images.
+The more important issue in this case is to try to keep the data size at least somewhat manageable, and JPEG compression can at least reduce the file size from 40 GB image to around 1-2 GB.
+Therefore it is acceptable, even if it is not ideal, to use JPEG compression and work with RGB images.
+Nevertheless, other variations in compression (including JPEG 2000 or JPEG-XR) are becoming increasingly common for whole slide images, particularly for fluorescence applications.
+
+With regards to analyzing such images, the fact that each 2D plane is so large causes considerable computational problems, and it is common to have to try to detect, measure and classify hundreds of thousands of cells across large tissue sections.
+
+For this reason, I ended up writing new open source software for whole slide image analysis called __QuPath__, available at https://qupath.github.io.
+Naturally, __QuPath__ integrates with ImageJ - so if you happen to want to try it out, whatever you might learn from this handbook could also be applied within __QuPath__ as well.
+
+Further documentation is provided at https://github.com/qupath/qupath/wiki.
+
+[sidebar]
+[[fig-qupath, 5]]
+--
+[cols="a"]
+[frame=none, grid=none, halign=center, valign=bottom, width=75%]
+|===
+|image::images/qupath_demo.jpg[float=center]
+|===
+**Figure {counter:figure}:**
+QuPath screenshots.
+--

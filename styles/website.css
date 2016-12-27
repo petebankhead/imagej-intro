@@ -1,0 +1,129 @@
+/* CSS for website */
+
+.sidebarblock {
+    margin: 10px;
+    padding: 20px;
+    font-size: 0.9em;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+    background-color: rgba(127, 127, 127, 0.1);
+}
+
+.sidebarblock .title {
+    font-size: 1.4em;
+    text-align: center;
+    font-weight: bold;
+}
+
+div.sidebarblock table {
+  margin-left:auto;
+  margin-right:auto;
+}
+
+div.sidebarblock table, div.sidebarblock td, div.sidebarblock th, div.sidebarblock tr:nth-child(odd), div.sidebarblock tr:nth-child(even) {
+    border: none;
+    border-bottom: none;
+    border-top: none;
+    background-color: rgba(255, 255, 255, 0.25);
+    background: transparent;
+}
+
+.chapter-outline {
+  margin: 10px;
+  padding: 10px;
+  font-size: 0.9em;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+  background-color: rgba(240, 220, 200, 0.25);
+}
+
+.chapter-outline .title {
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.standout {
+  background-color: rgba(240, 220, 200, 0.25);
+  text-align: center;
+  font-weight: bold;
+}
+
+.question {
+  background-color: rgba(240, 200, 200, 0.25);
+}
+
+.question .title {
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.solution {
+  margin: 10px;
+  padding: 10px 10px 10px 10px;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.solution {
+  transition: opacity 1s ease-out;
+  opacity: 0;
+}
+
+.solution:active, .solution:hover, .solution:focus {
+  opacity: 1;
+  height: auto;
+}
+
+.practical {
+  background-color: rgba(200, 240, 200, 0.25);
+}
+
+.practical .title {
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.info {
+  background-color: rgba(200, 200, 240, 0.25);
+}
+
+.imageblock .title {
+  font-size: 0.9em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.menuseq {
+  background-color: rgba(0, 0, 0, 0.025);
+  padding: 2px;
+}
+
+.markdown-section code {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+.markdown-section sup {
+  font-size: 0.8em;
+}
+
+#footnotes {
+  font-size: 0.8em;
+}
+
+
+h1 a:link, h2 a:link, h3 a:link, h4 a:link, h4 a:link {
+   color: inherit;
+}
+
+h1 a:visited, h2 a:visited, h3 a:visited, h4 a:visited, h4 a:visited {
+   color: inherit;
+}
+
+.button {
+  background-color: transparent;
+  width:auto;
+  text-align:center;
+  float:none;
+  line-height:auto;
+  padding:0px;
+}

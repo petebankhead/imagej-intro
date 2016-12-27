@@ -1,0 +1,35 @@
+= Analyzing fluorescence microscopy images with ImageJ
+
+.. link:chapters/acknowledgements/acknowledgements.adoc[Acknowledgements]
+.. link:chapters/practicals/practicals.adoc[Questions & practicals]
+.. link:chapters/preface/preface.adoc[Preface]
+
+== Part I: Introducing images, ImageJ & Fiji
+
+//. link:part_basics.adoc[Introducing images, ImageJ & Fiji]
+.. link:chapters/images_and_pixels/images_and_pixels.adoc[Images & pixels]
+.. link:chapters/dimensions/dimensions.adoc[Dimensions]
+.. link:chapters/bit_depths/bit_depths.adoc[Types & bit-depths]
+.. link:chapters/colors/colors.adoc[Channels & colors]
+.. link:chapters/files/files.adoc[Files & file formats]
+
+== Part II: Processing fundamentals
+
+//. link:part_basics.adoc[Processing fundamentals]
+.. link:chapters/processing_and_analysis/processing_and_analysis.adoc[Overview: Processing & Analysis]
+.. link:chapters/rois/rois.adoc[Measurements & regions of interest]
+.. link:chapters/point_operations/point_operations.adoc[Manipulating individual pixels]
+.. link:chapters/thresholding/thresholding.adoc[Detection by thresholding]
+.. link:chapters/filters/filters.adoc[Filters]
+.. link:chapters/binary/binary.adoc[Binary images]
+.. link:chapters/multidimensional_processing/multidimensional_processing.adoc[Processing data with higher dimensions]
+.. link:chapters/macro_intro/macro_intro.adoc[Writing macros]
+
+== Part III: Fluorescence images
+
+//. link:part_basics.adoc[Fluorescence images]
+.. link:chapters/formation_overview/formation_overview.adoc[From photons to pixels]
+.. link:chapters/formation_spatial/formation_spatial.adoc[Blur & the PSF]
+.. link:chapters/formation_noise/formation_noise.adoc[Noise]
+.. link:chapters/microscope_types/microscope_types.adoc[Microscopes & detectors]
+.. link:chapters/macro_simulating/macro_simulating.adoc[Simulating image formation]

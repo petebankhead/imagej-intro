@@ -1,0 +1,24 @@
+= Preface
+
+[quote, Plato, The Republic]
+____
+To them, I said, the truth would be literally nothing but the shadows of the images.
+____
+
+In Plato's _Republic_, Socrates proposes a scene in which prisoners are chained up in an underground cavern so they cannot even move their heads.footnote:[The dialogue can be read at http://en.wikisource.org/wiki/The_Republic/Book_VII.]  The view of the prisoners is confined to the shadows cast upon the wall in front of them: their own shadows, and also those of people passing by behind them.  If all they could ever see were the shadows, Socrates asks, then wouldn't the shadows seem like the truth to them?  Wouldn't they interpret sounds and voices as if they are coming from the shadows themselves, rather than anyone or anything behind them, and think that they understand -- failing to realize that they are only seeing reflections of reality, and not reality itself?
+
+image::images/platos_cave.jpg[width=60%, title="Plato's cave.", caption="", align="center"]
+
+The purpose of bringing this up here is not so much to introduce a profound examination how our limited minds may overestimate their grasp of reality based upon what our senses can tell us, but rather to draw attention to a rather more simple and specific point: when it comes to analyzing fluorescence microscopy images in biology, it is **essential** to remember that we are not directly seeing the phenomena we normally want to measure.  At best, we can record images containing information that relates in some way to the reality of what we wish to study -- but which is nevertheless quite far removed from that reality.
+
+Computers are excellent for making measurements.  Armed with some relevant software, it is possible to make masses of measurements quickly -- all to an intimidating number of decimal (or rather binary) places, giving an impressive semblance of precision.  But to ensure that the measurements made are at all **meaningful**, and that they are properly interpreted, requires that we know the limitations of what the images can tell us.  Otherwise we risk very accurately quantifying phenomena like point spread functions and noise, and reporting these as if they might have biological significance.
+
+The overall purpose of this book is to provide a path for busy biologists into understanding fluorescence images and how to analyze them, using the free, open-source software ImageJ (specifically the Fiji distribution) to explore the concepts.  It divides into three parts:
+
+* **Introduction to images, ImageJ & Fiji** -- The basic concepts of digital images in microscopy.  While essential to know, if the idea of trying to quantitatively analyze an 8-bit RGB color JPEG compressed AVI file already fills you with horror, you may be able to save time by skipping much of this.
+* **Processing fundamentals** -- A tour of the most important and general techniques that can be used to help extract information from many types of image.  After this, you should be happy with Gaussian filters, thresholding, spot detection and object analysis, with some macro-writing skills.
+* **Fluorescence images** -- More detail about fluorescence image formation.  This is necessary not only to properly interpret any measurements, but also when figuring how to ensure data is recorded well in the first place.
+
+No background in image analysis or computer programming is assumed, nor is the maths here very deep.  Specifically, if you are at ease with arithmetic, means, medians,footnote:[Just in case: the mean is the familiar average, i.e. add up all the values, and divide by the number of values you have.  The median is what you get if you sort a list of values, and then choose the one in the middle], standard deviations and the occasional square root, this is enough.
+
+There are a large number of questions and practicals strewn throughout the pages.  These are not supposed to steal your time (although a few could be quite tricky), but rather to make the ideas more memorable and the reading feel more worthwhile.  In most cases, my suggested solutions are provided as well.  You may well find alternative or better solutions.

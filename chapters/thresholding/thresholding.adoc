@@ -1,0 +1,586 @@
+{% include "../includes.adoc" %}
+= Detection by thresholding
+
+[.chapter-outline]
+.Chapter outline
+--
+* The process of detecting interesting objects in an image is called segmentation, and the result is often a binary or labeled image
+* Global thresholding identifies pixels with values in particular ranges
+* Thresholds can be calculated from image histograms
+* Combining thresholding with filtering & image subtraction make
+it suitable for a wide range of images
+* Binary images can be used to create ROIs or other object representations
+--
+
+[[introduction]]
+Introduction
+------------
+
+<<../rois/rois.adoc#chap, Measurements & regions of interest>> described how measurements can be made using
+manually-drawn ROIs. This may be fine in simple cases where there are
+not too many things to analyze, but it is preferable to find ways to
+automate the process of defining regions – not only because this is
+likely to be faster, but because it should give more reproducible and
+less biased results.
+
+[[objects-segmentation-binary-labeled-images]]
+Objects, segmentation, binary & labeled images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In image processing literature, interesting image structures are
+frequently called _objects_ (or sometimes _connected components_), and
+the often troublesome process of detecting them is _image segmentation_.
+
+Most of the techniques described in the following chapters can be strung
+together in an effort to segment an image accurately. If successful, the
+result may be a _binary image_, in which each pixel can only have one of
+two values to indicate whether it is part of an object or not, or a
+_labeled image_, in which all pixels that are part of the same object
+have the same, unique value. It is common to concentrate first on
+producing a binary image, and then create a labeled image only if
+necessary by identifying distinct clusters of object pixels and
+assigning the labels to these.
+
+.Binary images in ImageJ
+[.info]
+****
+Although only one 1 bit is really needed for
+each pixel in a binary image, the implementation in ImageJ currently
+uses 8-bits – and so the actual pixel values allowed are 0 and 255. To
+complicate matters, ImageJ also permits _either_ of these to represent
+the foreground, with the choice hidden away under
+menu:Process[Binary > Options...], and 0 taken to be 'black' and 255
+'white'. Personally, I prefer for white to represent the foreground
+(i.e. the interesting things we have detected), and so I will assume
+that the `Black background` option has been checked.
+
+Nevertheless, you should be aware that this convention is not adopted
+universally. Furthermore, if you choose `Invert LUT` then the colors are
+flipped anyway – so yet more confusion arises. Therefore if you find
+that any processing of binary images gives odd results, be sure to check
+the binary options and LUT status.
+****
+
+[[global-thresholding]]
+Global thresholding
+-------------------
+
+The usual way to generate a binary image is by _thresholding_:
+identifying pixels above or below a particular threshold value. In
+ImageJ, the menu:Image[Adjust > Threshold...] command allows you to define
+both low and high threshold values, so that only pixels falling within a
+specified range are found. After choosing suitable thresholds, pressing
+btn:[Apply] produces the binary imagefootnote:[Since in ImageJ this replaces
+the original image, you might want to duplicate it first.]. Because the
+same thresholds are applied to every pixel in the entire image, this is
+an example of _global thresholding_ – which is really a kind of point
+operation, since the output for any pixel depends only on the pixel's
+original value and nothing else.
+
+[[choosing-your-results-with-manual-thresholds]]
+Choosing your results with manual thresholds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The puzzle of global thresholding is how to define the thresholds
+sensibly. If you open menu:File[Open Samples > HeLa Cells] and split the
+channels (menu:Image[Color > Split Channels]), you can use `Threshold...`
+to interactively try out different possibilities for each channel. You
+should soon notice the danger in this: the results (especially in the
+red or green channels) can be very sensitive to the threshold you
+choose. Low thresholds tend to detect _more_ structures, and also to
+make them _bigger_ – until the point at which the structures merge, and
+then there are _fewer_ detected again
+(Figure <<fig-thresholds_manual>>).
+
+[sidebar]
+[[fig-thresholds_manual, 1]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/manual_threshold_red.png[title="Image" caption="A: " float=center]
+|image::images/manual_threshold_low.png[title="Low threshold" caption="B: " float=center]
+|image::images/manual_threshold_high.png[title="High threshold" caption="C: " float=center]
+|===
+**Figure {counter:figure}:**
+Applying manually-chosen thresholds to the red channel of `HeLa Cells` (A).
+In (B), a relatively low threshold results in 124 spots being detected with an average area of 32.9 pixels^2^ – but in some places these look like several spots merged.
+Choosing a higher threshold to avoid merging leads to 74 detections in \(C), with an average size of 20.3 pixels^2^.
+--
+
+In other words, you can sometimes use manual thresholds to get more or
+less whatever result you want – which could completely alter the
+interpretation of the data. For the upstanding scientist who finds this
+situation disconcerting, ImageJ therefore offers a number of automated
+threshold determination methods in a drop-down list in the
+`Threshold...` tool. These are described at
+http://imagej.net/Auto_Threshold, often with references to
+the original published papers upon which they are based. Fiji's
+menu:Image[Adjust > Auto Threshold] command provides additional options,
+including the ability to apply all the thresholds and see which one
+appears to provide the best results.
+
+[[determining-thresholds-from-histograms]]
+Determining thresholds from histograms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is no always-applicable strategy to determine a threshold; images
+vary too much. However, by its nature, thresholding assumes that there
+are two classes of pixel in the image – those that belong to interesting
+objects, and those that do not – and pixels in each class have different
+intensity valuesfootnote:[Of course there may be multiple classes for
+different kinds of objects, and perhaps multiple thresholds would make
+more sense. However, in such cases it may be possible to apply steps
+such as filtering to remove some of the more confusing information, and
+reduce the detection problem to that of separating only two classes.
+Therefore although thresholding is not always appropriate and different
+methods of detection can be needed for complex problems, it is still
+useful a lot of the time.]. Whenever values are significant, but their
+exact location in the image is either unknown or unimportant, this
+information is neatly summarized within the image's histogram. Therefore
+ImageJ's methods to find thresholds do not work on the images directly,
+but rather on their histograms – which is considerably simpler.
+
+A justification for this can be seen in Figure <<fig-thresholds_nuclei>>.
+Looking at the image, the two nuclei are obvious: they clearly have
+higher values than the background (A). However, looking at the histogram
+alone (B) we could already have inferred that there was a class of
+background pixels (the tall peak on the left) and a class of 'other',
+clearly distinct pixels (the much shallower peak on the right). By
+choosing a threshold between these two peaks – somewhere around 400 –
+the nuclei can be cleanly separated \(C). Choosing a threshold much higher
+or lower than this yields less impressive results (D).
+
+[sidebar]
+[[fig-thresholds_nuclei, 2]]
+--
+[cols="a,a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/thresholds_blue_image.png[title="Image" caption="A: " float=center]
+|image::images/thresholds_blue_hist.png[title="Histogram" caption="B: " float=center]
+|image::images/thresholds_blue_triangle_395.png[title="Triangle threshold" caption="C: " float=center]
+|image::images/thresholds_blue_otsu_762.png[title="Otsu's threshold" caption="D: " float=center]
+|===
+**Figure {counter:figure}:**
+Automated thresholding to detect nuclei.
+(A) Detail from the blue channel of `HeLa Cells`.
+(B) In the image histogram you can see one large peak corresponding to the background, and a much longer, shallower peak corresponding to the nuclei.
+The arrow marks the trough between these two peaks.
+From inspecting the histogram, one would expect that a threshold anywhere in the range 380-480 could adequately separate the two classes.
+The triangle method yields a suitable threshold of 395 \(C), while Otsu's method gives 762, making it inappropriate for this particular data (D).
+--
+
+Figure <<fig-thresholds_green>> gives a more challenging example. In the
+image itself the structures are not very clearly defined, and in many
+cases it is not obvious whether we would want to consider any particular
+pixel as 'bright enough' for detection or not (A). The histogram also
+depicts this uncertainty; there is a smoother transition between the
+background peak and the foreground (B). The results of applying two
+different automated thresholds are shown, \(C) and (D). Both are in some sense
+justifiable, and deciding which is the most appropriate would require a
+deeper understanding of what the image contains and what is to be
+analyzed.
+
+[sidebar]
+[[fig-thresholds_green, 3]]
+--
+[cols="a,a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/thresholds_green_image.png[title="Image" caption="A: " float=center]
+|image::images/thresholds_green_hist.png[title="Histogram" caption="B: " float=center]
+|image::images/thresholds_green_triangle_461.png[title="Triangle threshold" caption="C: " float=center]
+|image::images/thresholds_green_otsu_615.png[title="Otsu's threshold" caption="D: " float=center]
+|===
+**Figure {counter:figure}:**
+Automated thresholding of less distinct classes.
+(A) Detail from the green channel of HeLa Cells.
+(B) The background peak is still visible in the histogram, but merges without an obvious trough into the foreground.
+The triangle method here gives a much lower threshold than Otsu's method (461 rather than 615), although which is preferable may depend on the application \(C)-(D).
+--
+
+.Automated thresholding and data clipping
+[.info]
+****
+If the data is <<../bit_depths/bit_depths.adoc#sec-acquisition_clipping, clipped>>, then the statistics calculated
+from the histogram are affected – and the theory underlying why an
+automated threshold should work might no longer apply. _This is another
+reason why clipping should always be avoided!_
+****
+
+[[sec-threshold_local]]
+Thresholding difficult data
+---------------------------
+
+Applying global thresholds is all well and good in easy images for which
+a threshold clearly exists, but in practice things are rarely so
+straightforward – and often no threshold, manual or automatic, produces
+useable results. This section anticipates the next chapter on filters by
+showing that, with some extra processing, thresholding can be redeemed
+even if it initially seems to perform badly.
+
+[[thresholding-noisy-data]]
+Thresholding noisy data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Noise is one problem that affects thresholds, especially in live cell
+imaging. The top half of Figure <<fig-thresholds_noisy>> reproduces the
+nuclei from Figure <<fig-thresholds_nuclei>>, but with extra noise added
+to simulate less than ideal imaging conditions. Although the nuclei are
+still clearly visible in the image (A), the two classes of pixel previously
+easy to separate in the histogram have now merged together (B). The
+triangle threshold method, which had performed well before, now gives
+less attractive results \(C), because the noise has caused the ranges of
+background and nuclei pixels to overlap. However, applying a Gaussian
+filter smooths the image, thereby reducing much of the random noise
+(see <<../filters/filters.adoc#chap, Filters>>), which results in a histogram dramatically more
+similar to that in the original, (almost) noise-free image, and the
+threshold is again quite successful (F).
+
+[sidebar]
+[[fig-thresholds_noisy, 4]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/thresholds_noisy_image.png[title="Noisy image" caption="A: " float=center]
+|image::images/thresholds_noisy_hist.png[title="Histogram of (A)" caption="B: " float=center]
+|image::images/thresholds_noisy_triangle.png[title="Threshold applied to (A)" caption="C: " float=center]
+
+|image::images/thresholds_filtered_image.png[title="Gaussian filtered image" caption="D: " float=center]
+|image::images/thresholds_filtered_hist.png[title="Histogram of (D)" caption="E: " float=center]
+|image::images/thresholds_filtered_triangle.png[title="Threshold applied to (D)" caption="F: " float=center]
+|===
+**Figure {counter:figure}:**
+Noise can affect thresholding.
+After the addition of simulated noise to the image in Figure <<fig-thresholds_nuclei>>, the distinction between nuclei and non-nuclei pixels is much harder to identify in the histogram (B).
+Any threshold would result in a large number of incorrectly-identified pixels.
+However, applying a Gaussian filter (here, sigma = 2) to reduce noise can dramatically improve the situation (E).
+Thresholds in \(C) and (F) were computed using the triangle method.
+--
+
+[[local-thresholding]]
+Local thresholding
+~~~~~~~~~~~~~~~~~~
+
+Another common problem is that structures that should be detected appear
+on top of a background that itself varies in brightness. For example, in
+the red channel of `HeLa cells` there is no single global threshold
+capable of identifying and separating all the 'spot-like' structures;
+any choice will miss many of the spots because a threshold high enough
+to avoid the background will also be too high to catch all the spots
+occurring in the darker regions (Figure <<fig-thresholds_local>>a–c).
+
+[sidebar]
+[[fig-thresholds_local, 5]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/thresholds_red_orig.png[title="Original image" caption="A: " float=center]
+|image::images/thresholds_red_otsu.png[title="Otsu's threshold" caption="B: " float=center]
+|image::images/thresholds_red_triangle.png[title="Triangle threshold" caption="C: " float=center]
+
+|image::images/thresholds_red_median.png[title="Median filtered image" caption="D: " float=center]
+|image::images/thresholds_red_median_subtracted.png[title="Result of (A)-(D)" caption="E: " float=center]
+|image::images/thresholds_red_triangle_median_subtracted.png[title="Triangle threshold of (E)" caption="F: " float=center]
+|===
+**Figure {counter:figure}:**
+Thresholding to detect structures appearing on a varying background.
+No global threshold may be sufficiently selective _(top row)_.
+However, if a 'background image' can be created, e.g. by median filtering, and then subtracted, a single threshold can give better results _(bottom row)_.
+This is equivalent to applying a varying threshold to the original image.
+--
+
+In such cases it would be better if we could define different thresholds
+for different parts of the image: a _local threshold_. A few methods to
+do this are implemented in Fiji's
+menu:Image[Adjust > Auto Local Threshold], and described at
+http://imagej.net/Auto_Local_Threshold. However, if these
+are insufficient it is easy to implement our own local thresholding and
+get more control over the result if we think of the problem from a
+slightly different angle. Suppose we had a second image that contained
+values equal to the thresholds want to apply, and which could be
+different for every pixel. If we simply _subtract_ this second image
+from the first, we can then apply a global threshold to detect what we
+want.
+
+The difficult part is creating the second image, but again filters come
+in useful. One option is a <<../filters/filters.adoc#sec-rank_filters, _median filter_>>,
+which effectively moves through every pixel in the image, ranks the
+nearby pixels in order of value, and chooses the middle one – thereby
+removing anything much brighter or much darker than its surroundings (D).
+Subtracting the median-filtered image from the original gives a result
+to which a global threshold can be usefully applied (E).
+
+.Alternative background subtraction
+[.info]
+****
+ImageJ already has a
+menu:Process[Subtract Background...] command that does something similar
+to the above, but in which the background is determined using the
+http://imagejdocu.tudor.lu/doku.php?id=gui:process:subtract_background['rolling
+ball algorithm']. This command is described in more detail upon pressing
+its btn:[Help] button, and it supports previewing the background so that you
+can check it is doing something appropriate.
+****
+
+.Practical
+[.practical]
+****
+Explore several automated methods of thresholding the
+different channels of menu:File[Open Samples > HeLa Cells], using
+`Subtract Background...` if necessary.
+****
+
+[[practicalities-bit-depths-types]]
+Practicalities: bit-depths & types
+----------------------------------
+
+[[sec-thresholding_nans]]
+Using NaNs
+~~~~~~~~~~
+
+Although not obviously integral to the idea of thresholding, bit-depths
+and image types are relevant in two main ways.
+
+The first appears when
+you click btn:[Apply] in the `Threshold...` dialog box for a 32-bit image.
+This presents the option `Set Background Pixels to NaN`, which instead
+of making a binary image would give give an image in which the
+foreground pixels retain their original values, while background pixels
+are _Not A Number_. This is a special value that can only be stored in
+floating point images, which ImageJ ignores when making measurements
+later. It is therefore used to mask out regions.
+
+.Question
+[.question]
+****
+Through experiment or guesswork, what do you suppose happens
+to NaNs with a 32-bit image is converted to 8-bit or 16-bit?
+
+.Answer
+[.solution]
+--
+Since NaN is not an integer, it cannot be stored in an 8-bit
+or 16-bit unsigned integer image. Instead, all NaNs simply become zero.
+--
+****
+
+.Practical
+[.practical]
+****
+Create an image including NaN pixels, then measure some ROIs
+drawn on it. Are area measurements affected by whether NaNs are present
+or not?
+
+.Answer
+[.solution]
+--
+They are. If you measure the area of an image containing NaNs,
+the result is less than if you measure the area of the same image
+converted to 8-bit – since only the non-NaN parts are included. If you
+measure a region containing NaNs only, the area is 0.
+--
+****
+
+[[histogram-binning]]
+Histogram binning
+~~~~~~~~~~~~~~~~~
+
+The second way in which bit-depths and types matter is that histograms
+of images > 8-bit involve _binning_ the data. For example,
+with a 32-bit image it would probably not make sense to create a
+histogram that has separate counts for all possible pixel values: in
+addition to counts for pixels with exact values 1 and 2, we would have
+thousands of counts for pixels with fractions in between (and most of
+these counts would be 0). Instead, the histogram is generated by
+dividing the total data range (maximum – minimum pixel values) into 256
+separate _bins_ with equal widths, and counting how many pixels have
+values falling into the range of each bin. It is therefore like a subtle
+conversion to 8-bit precision for the threshold calculation, but without
+actually changing the original data. The same type of conversion is used
+for 16-bit images – _unless_ you use Fiji's
+menu:Image[Adjust > Auto Threshold] command, which uses a full 16-bit
+histogram with 65536 bins.
+
+Although binning effects can often be ignored, if the total range of
+pixel values in an image is very large then it is worth keeping in mind.
+
+.Practical
+[.practical]
+****
+What are the implications of using a 256-bin histogram for
+thresholding a 32-bit image? In particular, how might any outlier pixels
+affect the accuracy with which you can define a threshold –
+automatically or manually?
+
+To explore this, you can use the extreme example of `cell_outlier.tif`
+along with the `Threshold...` command. menu:Analyze[Histogram] lets you
+investigate the image histogram with different numbers of bins – but any
+changes you make here will not be reflected in the histogram actually
+used for thresholding.
+
+How could you (manually) reduce the impact of any problems you find?
+
+.Answer
+[.solution]
+--
+First, a positive implication of using a 256-bit histogram for
+thresholding is that it can be fast: more bins add to the computations
+involved. Also, creating too many bins has the result of making most of
+them zero – potentially causing some automated threshold-determination
+algorithms to fail.
+
+A negative implication is that using 256 bins means that only 256
+different thresholds are possible: that is, if your image range is
+0–25500, then the thresholds you could get are 0, 100, 200, ... 25500.
+If the optimal threshold is really 150, this will not be found. But
+usually if your range of pixel values is this large, you do not need a
+very fine-grained threshold for acceptable results anyway.
+
+This changes if you have outliers. A single extreme pixel – as occurs
+when a pixel in a CCD camera is somehow 'broken' – can cause most other
+pixels in the image to be squeezed into only a few bins. Then the
+histogram resolution might really be too small for reasonable
+thresholding.
+
+Two possible ways to overcome this are:
+
+1.  Apply a provisional threshold to detect the outliers only, switch
+the `Dark background` option if necessary, and use the trick of making
+background values NaN in thresholded 32-bit images. This eliminates the
+outlier so that it cannot influence the results. Recomputing the
+threshold will simply ignore it.
+2.  Convert the image to 8-bit manually yourself. This allows you to
+effectively choose the range of the histogram bins (using
+`Brightness/Contrast...`; see <<../bit_depths/bit_depths.adoc#sec-bit_depth_converting, Types & bit-depths>>) Since
+the threshold is made using 256 bins, you are not really losing any
+information that was not going to be lost anyway.
+--
+****
+
+[[sec-binary_and_labelled]]
+Measuring objects in binary images
+----------------------------------
+
+[[generating-measuring-rois]]
+Generating & measuring ROIs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once we have a binary image, the next step is to identify objects within
+it and measure them. In 2D, there are several options:
+
+* Click on an object with the `Wand` tool to create measurable ROI from
+it
+* menu:Edit[Selection > Create Selection] makes a single ROI containing
+all the foreground pixels. Disconnected regions can be separated by
+adding the ROI to the ROI Manager and choosing `More >> Split`.
+* menu:Analyze[Analyze Particles...] detects and measures all the
+foreground regions as individual objects.
+
+.Creating ROIs
+****
+The `Wand` tool, `Create Selection` & `Analyze Particles...` can also be used when a threshold is being previewed on an image, but it has not yet been converted to binary.
+****
+
+`Analyze Particles...` is the most automated and versatile option,
+making it possible to ignore regions that are particularly small or
+large, straight or round (using a `Circularity` metric). It can also
+output summary results and add ROIs for each region to the ROI Manager.
+With the `Show: Count Masks` option, it will generate a labeled image,
+in which each pixel has a unique integer value indicating the number of
+the object it is part of – or zero if it is in the background. With a
+suitably colorful LUT, this can create a helpful and cheerful display
+(Figure <<fig-blobs_binary_label>>).
+
+[sidebar]
+[[fig-blobs_binary_label, 6]]
+--
+[cols="a,a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/blobs.png[title="Original blobs" caption="A: " float=center]
+|image::images/blobs_binary.png[title="Binary image" caption="B: " float=center]
+|image::images/blobs_rois.png[title="Original + ROIs" caption="C: " float=center]
+|image::images/blobs_labelled.png[title="Labelled image" caption="D: " float=center]
+|===
+**Figure {counter:figure}:**
+Examples of a grayscale (`Blobs.gif`), binary and labelled image.
+In \(C), ROIs have been generated from (B) and superimposed on top of (A).
+In (D), each label has been assigned a unique color for display.
+--
+
+.Connectivity
+[.info]
+****
+
+Identifying multiple objects in a binary image involves separating
+distinct groups of pixels that are considered 'connected' to one
+another, and then creating a ROI or label for each group. Connectivity
+in this sense can be defined in different ways. For example, if two
+pixels have the same value and are immediately beside one another
+(above, below, to the left or right, or diagonally adjacent) then they
+are said to be _8-connected_, because there are 8 different neighboring
+locations involved. Pixels are _4-connected_ if they are horizontally or
+vertically adjacent, but _not_ only diagonally.
+
+[cols="a,a", width=50%]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/connectivity_4.png[title="_4-connected_", caption="", float=center]
+|image::images/connectivity_8.png[title="_8-connected_", caption="", float=center]
+|===
+
+The choice of connectivity can make a big difference in the number and
+sizes of objects found, as the example on the right shows (distinct
+objects are shown in different colors). An option to specify the
+connectivity used by the `Wand` tool can be found by double-clicking its
+button.
+****
+
+.Question
+[.question]
+****
+What do you suppose _6-connectivity_ and _26-connectivity_
+refer to?
+
+.Answer
+[.solution]
+--
+6-connectivity is similar to 4-connectivity, but in 3D. If all
+3D diagonals are considered, we end up with each pixel having 26
+neighbors.
+--
+****
+
+.Practical
+[.practical]
+****
+Work out what kind of connectivity is used by the `Analyze Particles...` command.
+
+.Answer
+[.solution]
+--
+At the time of writing, `Analyze Particles...` uses 8-connectivity.
+--
+****
+
+[[redirecting-measurements]]
+Redirecting measurements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Although binary images can show the shapes of things to be measured,
+pixel intensity measurements made on a binary image are not very
+helpful. You could use the above techniques to make ROIs from binary
+images, then apply those to the original image to get meaningful
+measurements. However, it is possible to avoid this extra step by
+changing the `Redirect to:` option under `Set Measurements...`. This
+allows you to measure ROIs or run `Analyze Particles...` with one image
+selected and used to define the regions, while redirecting your
+measurements to be made on a completely different image of your choice.
+
+If you use this, just be sure to reset the `Redirect to:` option when
+you are done, to avoid accidentally measuring the wrong image for so
+long as it is open.

@@ -1,0 +1,30 @@
+{% include "../includes.adoc" %}
+= Questions & practicals
+
+In addition to the main text, this handbook includes various questions and practical exercises..
+
+To make the most of these, please follow the instructions below.
+
+.Question
+[.question]
+****
+When you see a question, try to come up with your own answer first.
+
+Then, if you want to compare your answer with mine, hover your cursor over the space below the question (or tap once on the space if using a mobile device).
+
+.Answer
+[.solution]
+--
+Good! This is this answer.
+--
+****
+
+.Practical
+[.practical]
+****
+Some of the practicals refer to using specific images.
+
+Download the data required for these practicals https://github.com/petebankhead/imagej-intro/raw/master/practicals/Analyzing_fluorescence_images_data.zip[here].
+****
+
+''''

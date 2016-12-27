@@ -1,0 +1,316 @@
+{% include "../includes.adoc" %}
+= Measurements & regions of interest
+
+[.chapter-outline]
+.Chapter outline
+--
+* Regions of Interest (ROIs) can be manually drawn and measured
+* The accuracy of measurements will depend upon the Image Properties being correct
+* Multiple ROIs can be added to the ROI Manager or an overlay
+* ROIs can be inverted or combined to give more complex shapes
+--
+
+[[measuring-images]]
+Measuring images
+----------------
+
+The main command for measuring in ImageJ is found under
+menu:Analyze[Measure] (or just press kbd:[M]), where
+menu:Analyze[Set Measurements...] determines what measurements are
+actually made. Possibilities include areas, perimeters, lengths, and
+minimum, maximum and mean pixel intensities (here referred to as 'gray
+values'), as well as further measurements of shapes or intensities
+(Figure <<fig-measure>>B). By default, measurements are made over the
+entire area of the currently-selected 2D image slice, and added to a
+_results table_ (Figure <<fig-measure>>C).
+
+.Important!
+[.standout]
+****
+Size measurements are automatically scaled according to the pixel sizes
+in menu:Image[Image > Properties...], so these must be correct!
+****
+
+[sidebar]
+[[fig-measure, 1]]
+--
+[cols="a,a", width=70%, align=center]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/measure_image.png[title="Image" caption="A: " float=center]
+|image::images/measure_set.png[title="Set Measurements dialog" caption="B: " float=center]
+2+|image::images/measure_results.png[title="Results table" caption="C: " float=center]
+|===
+**Figure {counter:figure}:**
+Measurements made on an image are added to a results table.
+The choice of measurements to make can be changed using the menu:Analyze[Set Measurements...] command.
+--
+
+
+.Results tables & their titles
+[.info]
+****
+A small idiosyncrasy to be aware of is that, as far as ImageJ is
+concerned, there is only ever one 'official' results table – the one
+with the title `Results`. Different, similar-looking tables can be
+produced (perhaps by duplicating the official table, or internally by
+some other command), but any new measurements you make with the
+`Measure` command will _only_ be added to the official table. The
+official table also has an extra `Results` entry in its menu bar.
+
+[cols="a,a", width=70%, align=center]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/results_official.png[title="New measurements _will_ be added here" caption="" float=center]
+|image::images/results_unofficial.png[title="New measurements _will not_ be added here" caption="" float=center]
+|===
+
+****
+
+.Caution with measurements
+[.info]
+****
+`Set Measurements...` deserves your close
+attention! Because all new measurements are added to the same results
+table, when working with multiple images it can be hard to remember
+which measurement refers to which image. It is therefore a very good
+idea to choose `Display label` under `Set Measurements...`, to ensure
+the image title is included in the table. When working with higher
+dimensions, choosing `Stack Position` lets you know which 2D slice of
+the entire dataset has been measured.
+
+Also, for now, make sure that `Redirect to` is set to `None`. This is
+_normally_ what you want, to avoid merrily measuring the wrong image by
+accident (see <<../thresholding/thresholding.adoc#chap, Detection by thresholding>>).
+****
+
+[[regions-of-interest]]
+Regions Of Interest
+-------------------
+
+Usually we want to measure something _within_ an image and not the whole
+thing. Regions Of Interest (ROIs) can be used to define specific parts
+of an image that should be processed independently or measured, and so
+only pixels within any ROI we draw will be included in the calculations
+when we run `Measure`.
+
+[sidebar]
+[[fig-roi_drawing, 2]]
+--
+[cols="75a,25a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/roi_toolbar.png[title="Tool bar" caption="A: " float=center]
+|image::images/roi_glasses.png[title="Image + ROI" caption="B: " float=center]
+|===
+**Figure {counter:figure}:**
+ROI drawing tools are found on the left side of the ImageJ tool bar (A).
+The ROI in (B) was created by drawing one rectangular and two circular ROIs, holding down the kbd:[Shift] key between each so that the regions were combined.
+--
+
+ROIs of different types (e.g. rectangles, circles, lines, points,
+polygons, freehand shapes) can be drawn using the commands in the tool
+bar (Figure <<fig-roi_drawing>>), and are invariably 2D. Right-clicking
+the tools often provides access to related tools, while double-clicking
+may give additional options. When drawing a ROI, pressing kbd:[Shift] or
+kbd:[Control] before releasing the mouse button adds the ROI being drawn to
+any existing ROI already present.
+
+Some extra commands to create or adjust ROIs appear under the
+menu:Edit[Selection] submenu, which we will make more use of later.
+
+.Measurement accuracy
+[.info]
+****
+Although ImageJ can measure very exactly whatever
+regions it is told to measure _within an image_, keep in mind that in
+light microscopy images any size measurements will not exactly
+correspond to sizes of structures _in real life_. This is especially
+true at very small scales (hundreds of nanometers or smaller), for
+blur-related reasons that will be described in
+<<../formation_spatial/formation_spatial.adoc#chap, Blur & the PSF>>.
+****
+
+[[working-with-multiple-regions]]
+Working with multiple regions
+-----------------------------
+
+Normally, only a single ROI can be 'active' (i.e. affecting
+measurements) at any one time. If you need control over multiple ROIs,
+there are two places in which you can store them, differing according to
+purpose:
+
+1.  _The ROI Manager:_ for most ROIs that you want to be able to edit
+and use for measurements
+2.  _The image overlay:_ for ROIs that you only want to display
+
+[[the-roi-manager]]
+The ROI Manager
+~~~~~~~~~~~~~~~
+
+The _ROI Manager_ provides a convenient way to store multiple ROIs in a
+list, allowing you to easily access, edit and measure them. The slow way
+to open it is to choose menu:Analyze[Tools > ROI Manager...]. The fast way
+is just to draw a ROI and press kbd:[T]footnote:[Easily memorable as
+'__T__ake this ROI and add it to the ROI Manager'. Or '__T__roy
+Manager'.]. The additional `Measure` command within the manager is then
+like applying menu:Analyze[Measure] to each ROI in turn. If you happen to
+want to show all the ROIs simultaneously, you can select the `Show All`
+optionfootnote:[If you have a stack, you also may need to explore
+`More >> Options...` to define whether all ROIs are shown on all slices,
+or only on the slices on which they were first created.].
+
+Because ROIs in the ROI Manager are represented independently of the
+image on which they were defined, you can create a ROI on one image, add
+it to the ROI manager, select a different image and then click on the
+ROI in the ROI Manager to place it on the second image. Measurements
+made from the ROI Manager always use the most recently-selected image,
+so be careful if you have several images open at the same time.
+
+.Transferring ROIs
+****
+A faster way to transfer ROIs between images without using the ROI Manager is to click on the second image and press kbd:[Shift + E] (the shortcut for menu:Edit[Selection > Restore Selection])
+****
+
+.Expert ROI manipulation with the ROI Manager
+[.info]
+****
+Using the ROI Manager, you
+can craft your ROIs into more complex shapes, adding or removing other
+ROIs.
+
+To do this, first add the main ROIs you want to work with to the manager.
+Then select them, and choose from among the options:
+
+* `AND` – create a ROI containing only the regions where the selected
+ROIs overlap
+* `OR` – create a single ROI composed by combining all the selected ROIs
+* `XOR` – create a single ROI containing all the selected ROIs, _except_
+the places where they overlap ('eXclusive OR')
+****
+
+[[overlays]]
+Overlays
+~~~~~~~~
+
+Overlays also contain a list of ROIs that are shown simultaneously on
+the image, but which do _not_ affect the `Measure` command. They are
+therefore suitable for storing annotations for visualization purposes. You can think of them as
+existing on their own separate layer, so that adding and removing the
+overlay does not mess up the underlying pixel values
+(Figure <<fig-rois>>). The relevant commands are found in the
+menu:Image[Overlay] submenu, where you can get started by drawing a ROI
+and choosing `Add Selection` (or simply press kbd:[B]footnote:[For
+'__B__overlay'.]). The same submenu also provides commands to transfer
+ROIs between the overlay and the ROI Manager.
+
+.Adjusting overlays
+****
+You can 'reactivate' a ROI on an overlay by clicking it with the kbd:[Alt] key pressed (provided a suitable ROI tool is selected).
+****
+
+
+[[saving-rois]]
+Saving ROIs
+~~~~~~~~~~~
+
+Individual ROIs can be saved simply by choosing
+menu:File[Save As > Selection...] The ROI Manager itself has a `Save...`
+command (under `More`), which will save whichever ROIs are currently
+selected (or, if none are selected, all of them). Overlays are fixed to
+specific images and do not have their own special save command, but will
+nonetheless be included if you save the image as a TIFF file (ImageJ's
+default format). Any currently-active ROI will also be saved in a TIFF.
+
+This is fine if you work only in ImageJ or Fiji, but unfortunately if
+you try to view your ROIs in other software it is highly unlikely to
+work properly, since the format is specific to ImageJ. The way around
+this is to use the menu:Image[Overlay > Flatten] command. This creates an
+_RGB copy of the image in which the pixel values have been changed_ so
+that any ROIs or overlays will appear whenever you open the image
+elsewhere. Therefore you may well want to use this command when creating
+figures or presentations, but you do _not_ want to subsequently apply
+your analysis to the image you have flattened – always use the original
+instead.
+
+For more details on the impact of converting an image to RGB, see <<../colors/colors.adoc#chap, Channels & colors>>.
+
+[sidebar]
+[[fig-rois, 3]]
+--
+[cols="a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/rois_and_overlays.png[float=center]
+|image::images/rois_flattened.png[float=center]
+|===
+**Figure {counter:figure}:**
+ROIs and overlays are displayed on top of images, and so can be removed easily without having any effect upon the pixel values.
+Flattened images may appear the same on screen, but are invariably RGB (see <<../colors/colors.adoc#chap, Channels & colors>>) and have had their pixel values permanently changed to show any annotations.
+--
+
+.Practical
+[.practical]
+****
+image:images/annotated_cyclists.png[width=240,float="right"]
+Open the images `Annotated_Cyclists_1.tif` and
+`Annotated_Cyclists_2.tif`, which depict the 3 main cyclist
+characteristics I found most disconcerting as a pedestrian in
+Heidelberg.
+
+The images should initially look the same, but in one the text is an
+overlay, while in the other the image has been flattened. Which is
+which? Try to think of several ways to investigate this.
+
+.Answer
+[.solution]
+--
+`Annotated_Cyclists_1.tif` is the one with the overlay.
+
+Five ways to determine whether an annotation is an overlay or not:
+
+1.  Zoom in very closely to the region containing the annotation. If it
+becomes 'blocky', i.e. made up of pixels, it is not an overlay. If it
+remains smooth, then it is.
+2.  Move your cursor over the region where the annotation appears, and
+look at the pixel values. If the values are all the same where the
+annotation is present, but different elsewhere, then it is unlikely to
+be an overlay.
+3.  Using the paintbrush or pencil tool from the toolbar, try putting
+some other color where the annotation appears. If the annotation remains
+visible on top of where you drew, it must be on an overlay.
+4.  Choose menu:Image[Overlay > Hide Overlay] and see if the annotation
+disappears.
+5.  Choose menu:Image[Overlay > To ROI Manager] and see if anything
+happens at all.
+--
+
+****
+
+.Practical
+[.practical]
+****
+Using the cyclist image containing the overlay from the
+previous practical, rearrange the annotations so that they are each
+positioned next to different cyclists. You could do this by deleting the
+overlay and starting again, but there are other, faster possibilities
+(using a technique mentioned before, or the
+menu:Image[Overlay > To ROI Manager] command).
+
+.Answer
+[.solution]
+--
+_Old solution (when I wrote this question):_ Once the ROIs are
+in the ROI Manager, you can click on each and then move it. However, the
+original ROI will still stay in the manager – so after moving, you need
+to add the newly-positioned ROI to the manager, and delete the old one
+again.
+
+_Solution since ImageJ v1.46m:_ Click the annotation while holding down
+the kbd:[Alt] key, to bring it to life so it can be moved around again. This
+only works if certain tools are selected, e.g. `Rectangle` or `Text`,
+because some other tools have more overriding functions, such as zooming
+in or scrolling.
+--
+
+****

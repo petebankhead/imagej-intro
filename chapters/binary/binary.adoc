@@ -1,0 +1,322 @@
+{% include "../includes.adoc" %}
+= Binary images
+
+[.chapter-outline]
+.Chapter outline
+--
+* Morphological operations can be used to refine or modify the shapes of objects in binary images
+* The distance & watershed transforms can be used to separate close, round structures
+--
+
+[[introduction]]
+Introduction
+------------
+
+By means of filtering and thresholding, we can create binary images to
+detect structures of various shapes and sizes for different
+applications. Nevertheless, despite our best efforts these binary images
+often still contain inaccurate or undesirable detected regions, and
+could benefit from some extra cleaning up. Since at this stage we have
+moved away from the pixel values of the original image and are working
+only with shapes – morphology – the useful techniques are often called
+_morphological operations_. In ImageJ, several of these are to be found
+in the menu:Process[Binary] submenu.
+
+[[morphological-operations-using-rank-filters]]
+Morphological operations using rank filters
+-------------------------------------------
+
+[[sec-maths_morphological_operations]]
+Erosion & dilation
+~~~~~~~~~~~~~~~~~~
+
+Our first two morphological operations, _erosion_ and _dilation_, are
+actually identical to minimum and maximum filtering respectively,
+described <<../filters/filters.adoc#sec-rank_filters, in the previous chapter>>. The names erosion and
+dilation are used more often when speaking of binary images, but the
+operations are the same irrespective of the kind of image. Erosion will
+make objects in the binary image smaller, because a pixel will be set to
+the background value if _any_ other pixels in the neighborhood are
+background. This can split single objects into multiple ones.
+Conversely, dilation makes objects bigger, since the presence of a
+single foreground pixel anywhere in the neighborhood will result in a
+foreground output. This can also cause objects to merge.
+
+[sidebar]
+[[fig-erode-dilate-open, 1]]
+--
+[cols="a,a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/morph_erode.png[title="Erosion" caption="A: " float=center]
+|image::images/morph_dilate.png[title="Dilation" caption="B: " float=center]
+|image::images/morph_open.png[title="Opening" caption="C: " float=center]
+|image::images/morph_close.png[title="Closing" caption="D: " float=center]
+|===
+**Figure {counter:figure}:**
+The effects of the `Erode`, `Dilate`, `Open` and `Close-`` commands.
+The original image is shown at the top, while the processed part is at the bottom in each case.
+--
+
+[[opening-closing]]
+Opening & closing
+~~~~~~~~~~~~~~~~~
+
+The fact that erosion and dilation alone affect sizes can be a problem:
+we may like their abilities to merge, separate or remove objects, but
+prefer that they had less impact upon areas and volumes. Combining both
+operations helps achieve this.
+
+_Opening_ consists of an erosion followed by a dilation. It therefore
+first shrinks objects, and then expands them again to an _approximately_
+similar size. Such a process is not as pointless as it may first sound.
+If erosion causes very small objects to completely disappear, clearly
+the dilation cannot make them reappear: they are gone for good.
+Barely-connected objects separated by erosion are also not reconnected
+by the dilation step.
+
+_Closing_ is the opposite of opening, i.e. a
+dilation followed by an erosion, and similarly changes the shapes of
+objects. The dilation can cause almost-connected objects to merge, and
+these often then remain merged after the erosion. If you wish to count
+objects, but these are wrongly subdivided in the segmentation, closing
+may therefore help make the counts more accurate.
+
+These operations are implemented with the `Erode`, `Dilate`, `Open` and
+`Close-` commands – but only using 3 × 3
+neighborhoods. To perform the operations with larger neighborhoods,
+you can simply use the `Maximum...` and `Minimum...` filters, combining
+them to get opening and closing if necessary. Alternatively, in Fiji you
+can explore menu:Process[Morphology > Gray Morphology].
+
+[[outlines-holes-maximum]]
+Outlines, holes & maximum
+-------------------------
+
+Several more commands are to be found in the menu:Process[Binary] submenu.
+
+The `Outline` command, predictably, removes all the interior pixels from
+2D binary objects, leaving only the perimeters (Figure <<fig-outline_fill_skeleton>>A).
+`Fill Holes` would then fill these interior pixels in again, or indeed
+fill in any background pixels that are completely surrounded by
+foreground pixels (Figure <<fig-outline_fill_skeleton>>B). `Skeletonize` shaves off
+all the outer pixels of an object until only a connected central line
+remains (Figure <<fig-outline_fill_skeleton>>C). If you are analyzing linear
+structures (e.g. blood vessels, neurons), then this command or those in
+Fiji's menu:Plugins[Skeleton] submenu may be helpful.
+
+[sidebar]
+[[fig-outline_fill_skeleton, 2]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/outline.png[title="Outline" caption="A: " float=center]
+|image::images/fill_holes.png[title="Fill holes" caption="B: " float=center]
+|image::images/skeletonize.png[title="Skeletonize" caption="C: " float=center]
+|===
+**Figure {counter:figure}:**
+The effects of the `Outline`, `Fill holes` and `Skeletonize` commands.
+--
+
+.Question
+[.question]
+****
+The outline of an object in a binary image can also be
+determined by applying one other morphological operation to a duplicate
+of the image, and then using the `Image Calculator`. How?
+
+.Answer
+[.solution]
+--
+To outline the objects in a binary image, you can simply
+calculate the difference between the original image and an eroded (or
+dilated, if you want the pixels just beyond the objects) duplicate of the image.
+--
+****
+
+[[using-image-transforms]]
+Using image transforms
+----------------------
+
+An _image transform_ converts an image into some other form, in which the
+pixel values can have a (sometimes very) different interpretation.
+Several transforms are relevant to refining image segmentation.
+
+[[the-distance-transform]]
+The distance transform
+~~~~~~~~~~~~~~~~~~~~~~
+
+The distance transform replaces each pixel of a binary image with the
+distance to the closest background pixel. If the pixel itself is already
+part of the background then this is zero (Figure <<fig-distance_transform>>C).
+It can be applied using the menu:Process[Binary > Distance Map] command,
+and the type of output given is determined by the `EDM output` option
+under menu:Process[Binary > Options...] (where EDM stands for 'Euclidean
+Distance Map'). This makes a difference, because the distance between
+two diagonal pixels is considered $$\sqrt{2} \approx 1.414$$
+(by Pythagoras' theorem), so a 32-bit output can give more exact
+straight-line distances without rounding.
+
+[sidebar]
+[[fig-distance_transform, 3]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/blobs_orig.png[title="Original image" caption="A: " float=center]
+|image::images/blobs_binary.png[title="Thresholded image" caption="B: " float=center]
+|image::images/blobs_distance.png[title="Distance transform" caption="C: " float=center]
+|image::images/blobs_distance_inverted.png[title="Distance transform of inverted thresholded image" caption="D: " float=center]
+|image::images/blobs_voronoi.png[title="Voronoi" caption="E: " float=center]
+|image::images/blobs_merged.png[title="Voronoi + Ultimate points" caption="F: " float=center]
+|===
+**Figure {counter:figure}:**
+Applying the distance transform and related commands to a segmented (using Otsu's threshold) version of the sample image `Blobs`.
+In (F), the original image is shown in the red channel, the Voronoi lines shown in gray and the ultimate points added as a `Point selection`.
+--
+
+A natural question when considering the distance transform is: why?
+Although you may not have a use for it directly, with a little creative
+thinking it turns out that the distance transform can help solve some other problems rather elegantly.
+
+For example, `Ultimate Points` uses the distance transform to identify the
+last points that would be removed if the objects would be eroded until
+they disappear. In other words, it identifies centers. But these are not
+simply single center points for each object; rather, they are maximum
+points in the distance map, and therefore the pixels furthest away from
+the boundary. This means that if a structure has several 'bulges', then
+an ultimate point exists at the center of each of them. If segmentation
+has resulted in structures being merged together, then each distinct
+bulge could actually correspond to something interesting – and the
+number of bulges actually means more than the number of separated
+objects in the binary image (Figure <<fig-distance_transform>>F).
+
+Alternatively, if the distance transform is applied to an _inverted_
+binary image, the pixel values give the distance to the closest
+foreground object (Figure <<fig-distance_transform>>D). With this, the
+`Voronoi` command partitions an image into different regions so that the
+separation lines have an equal distance to the nearest foreground
+objects. Now suppose we detect objects in two separate channels of an
+image, and we want to associate those in the second channel with the
+closest objects in the first. We could potentially calculate the
+distance of all the objects from one another, but this would be slow and
+complicated. Simply applying `Voronoi` to the first channel gives us
+different partitions, and then we only need to see which partition each
+object in the second channel falls into (see Figure <<fig-distance_transform>>F).
+This will automatically be the same partition as the nearest
+first-channel object.
+
+.Question
+[.question]
+****
+Imagine you have created a binary image containing detected
+cells, but you are only interested in the region inside the cell that is
+close to the membrane, i.e. within 5 pixels of the edge of each detected
+object. Any pixels outside the objects or closer to their centers do not
+matter. How would you go about finding these regions?
+
+_Note:_ There are a few ways using the techniques in this chapter,
+although these do not necessarily give identical results.
+
+.Answer
+[.solution]
+--
+Two ways to find the region close to the boundaries of
+detected cells:
+
+1.  Compute the distance transform of the image. Run `Threshold...`,
+choose `Set` and enter `Lower Threshold Level: 1` and
+`Higher Threshold Level: 5`.
+2.  Duplicate the original binary image, then erode the duplicated
+version using a `Minimum` filter, `Radius = 5 pixels`. Compute the
+difference between this and the original using the
+`Image Calculator...`.
+
+There are more possible ways, such as applying `Outline`, dilating the
+result and then excluding pixels that fall outside the original cell
+regions... but that is a bit more work.
+--
+****
+
+[[sec-watershed]]
+The watershed transform
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The watershed transform provides an alternative to straightforward
+thresholding if you need to partition an image into many different
+objects.  The idea behind it is illustrated in Figure <<fig-watershed_cartoon>>.
+
+[sidebar]
+[[fig-watershed_cartoon, 4]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/watershed_cartoon_1.png[title="Water starts to fill the deepest regions first" caption="A: " float=center]
+|image::images/watershed_cartoon_2.png[title="As the water rises, dams are built to prevent overflow" caption="B: " float=center]
+|image::images/watershed_cartoon_3.png[title="The water continues rising until reaching its maximum" caption="C: " float=center]
+|===
+**Figure {counter:figure}:**
+A schematic diagram showing the operation of the watershed transform in 1 dimension.
+If you imagine rain falling on a hilly surface, the deepest regions fill up with water first.
+As the water rises further, soon the water from one of these regions would overflow into another region – in which case a dam is built to prevent this.
+The water continues to rise and dams added as necessary, until finally when viewed from above every location is either covered by water or belongs to a dam.
+--
+
+To understand how the watershed transform works, you should imagine the image as an
+uneven surface in which the value of each pixel corresponds to a height.
+Now imagine water falling evenly upon this surface and slowly flooding
+it. The water gathers first in the deepest parts; that is, in the places
+where pixels have values lower than all their neighbors. Each of these
+we can call a water basin.
+
+As the water level rises across the image, occasionally it will reach a
+ridge between two basins – and in reality water could spill from one
+basin into the other. However, in the watershed transform this is not
+permitted; rather a dam is constructed at such ridges. The water then
+continues to rise, with dams being built as needed, until in the end
+every pixel is either part of a basin or a ridge, and there are exactly
+the same number of basins afterwards as there were at first.
+
+
+ImageJ's `Watershed` command is a further development of this general principle, in which the _watershed
+transform is applied to the distance transform_ of a binary image, where
+the distance transform has also been inverted so that the centers of
+objects (which, remember, are just the _ultimate points_ mentioned
+above) now become the deepest parts of the basins that will fill with
+water. The end result is that any object that contains multiple ultimate
+points has ridges built inside it, separating it into different objects.
+If we happen to have wanted to detect roundish structures that were
+unfortunately merged together in our binary image, then this may well be
+enough to un-merge them (Figure <<fig-watershed_spots>>).
+
+[sidebar]
+[[fig-watershed_spots, 5]]
+--
+[cols="a,a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/blobs_binary_points.png[title="Binary image + ultimate points" caption="A: " float=center]
+|image::images/blobs_watershed.png[title="Watershed separation of objects in " caption="B: " float=center]
+|image::images/thresholds_red_cropped_detected.png[title="Detail from thresholded image" caption="C: " float=center]
+|image::images/thresholds_red_cropped_watershed.png[title="Watershed separation of objects in \(C)" caption="D: " float=center]
+|===
+**Figure {counter:figure}:**
+Applying the watershed transform to binary images is able to separate some merged spots based upon their shape.
+--
+
+
+.Intensity-based watershed
+****
+To apply the watershed transform to the original data, rather than the distance transform of a binary image, see menu:Process[Find Maxima...] with the output type `Segmented Particles`.
+****
+
+.Visualizing the watershed transform
+[.info]
+****
+If you turn on `Debug mode` under
+menu:Edit[Options > Misc...] and then run the `Watershed` command on an
+image, a stack is created in which you can see the individual steps of
+the transform – and perhaps obtain a clearer idea of what it is doing.
+****

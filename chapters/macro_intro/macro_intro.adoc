@@ -1,0 +1,414 @@
+{% include "../includes.adoc" %}
+= Writing macros
+
+[.chapter-outline]
+.Chapter outline
+--
+* Processing & analysis steps can be automated by writing macros
+* Straightforward macros can be produced without any programming using the Macro Recorder
+* Recorded macros can be modified to make them more robust & suitable for a wider range of images
+--
+
+[[introduction]]
+Introduction
+------------
+
+It is one thing to figure out steps that enable you to analyze an image,
+it is quite another to implement these steps for several – and perhaps
+many – different images. Without automation, the analysis might never
+happen; all the mouse-moving and clicking would just be too
+time-consuming, error-prone or boring, and momentarily lapses in
+concentration could require starting over again.
+
+Even a brief effort to understand how to automate analysis can produce
+vast, long-lasting improvements in personal productivity and sanity by
+reducing the time spent on mind-numbingly repetitive tasks. In some
+straightforward cases (e.g. converting file formats, applying
+projections or filters, or making measurements across entire images),
+this can already be done in ImageJ using the commands in the
+menu:Process[Batch > ] submenu and no programming whatsoever. But it is also
+very worthwhile to get some experience in producing macros, scripts or
+plugins, after which you can add your own new commands to the menus and
+carry out customized algorithms with a single click of a button or press
+of a key.
+
+Macros are basically sequences of commands, written in some programming
+language (here ImageJ's own macro language), which can be run
+automatically to make processing faster and easier. This chapter is far
+from an extensive introduction to macro-writing, but rather aims to
+introduce the main ideas quickly using a worked example. Should you wish
+to delve deeper into the subject, there is an
+http://imagej.net/developer/macro/macros.html[introduction to the
+language on the ImageJ
+website]footnote:[http://imagej.net/developer/macro/macros.html], and a
+http://imagej.net/Introduction_into_Macro_Programming[very
+helpful tutorial on the Fiji
+wiki]footnote:[http://imagej.net/Introduction_into_Macro_Programming],
+while the list of
+http://imagej.net/developer/macro/functions.html[built-in macro
+functions] is an indispensable
+referencefootnote:[http://imagej.net/developer/macro/functions.html].
+Once confident with macros, the next step would be to enter the world of
+scripts and plugins. These can be somewhat more difficult to learn, but
+reward the effort with the ability to do more complicated things. Links
+to help with this are available at https://imagej.net/Scripting.
+
+Finally, although it is possible to use ImageJ rather than Fiji to
+create macros, Fiji's script editor makes the process much easier by
+coloring text according to what it does, so I will assume you are using
+this.
+
+[[a-difference-of-gaussians-filter]]
+A Difference of Gaussians filter
+--------------------------------
+
+Difference of Gaussians (DoG) filtering was introduced in
+<<../filters/filters.adoc#sec-spots_gauss_diff, Filters>> as a technique to enhance the appearance
+of small spots and edges in an image. It is quite straightforward, but
+time consuming to apply manually very often – and you might need to
+experiment with the filter sizes a bit to get good results. This makes
+it an excellent candidate for a macro.
+
+[[recording-a-macro]]
+Recording a macro
+^^^^^^^^^^^^^^^^^
+
+Rather than diving into writing the code, the fastest way to get started
+is to have ImageJ do most of the hard work itself. Then you only need to
+fix up the result. The procedure is as follows:
+
+* Open up an example (2D, non-color) image to use, ideally one
+including small spot-like or otherwise round objects. I am using the
+image found under menu:File[Open Samples > HeLa Cells], after extracting the
+red channel only.
+* Start the _Macro Recorder_ by choosing menu:Plugins[Macros > Record]. Make
+sure that `Record: Macro` appears at the top of this window (see the
+drop-down list). Every subsequent click you make that has a
+corresponding macro command will result in the command being added to
+the window.
+* Convert your image to 32-bit. This will reduce inaccuracies due to
+rounding whenever the filtering is applied.
+* Duplicate the image.
+* Apply menu:Process[Filters > Gaussian Blur...] to one of the images (it does
+not matter if it is the original or the duplicate), using a small sigma
+(e.g. 1) for noise suppression.
+* Apply menu:Process[Filters > Gaussian Blur...] to the other image, using a larger sigma (e.g.
+2).
+* Run menu:Process[Image Calculator...] and subtract the second filtered
+image from the first. This produces the 'difference of Gaussians'
+filtered image, in which small features should appear prominently and
+the background is removed.
+* Press the `Create` button on the macro recorder. This should cause a
+text file containing the recorded macro to be opened in Fiji's
+`Script Editor` (which you can find under
+menu:File[New > Script...]).
+* Save the text file in the plugins folder of Fiji. The file name should
+end with the extension `.ijm` (for 'ImageJ Macro'), and include an
+underscore character somewhere within it.
+
+Now you have a macro! To try it out, close Fiji completely, then start
+it again and reopen the original image you used. There should be a new
+command in the `Plugins` menu for the macro you have just
+createdfootnote:[Without an underscore in the file name, the command
+will not be added to the menu.]. Running this new command on your
+example image should give you the same result as when you applied the
+commands manually. (If not, keep reading anyway and the following steps
+should fix it.)
+
+[[cleaning-up]]
+Cleaning up
+^^^^^^^^^^^
+
+
+Now reopen your macro in the Script Editor. It should look something
+like mine:
+
+[source, java]
+....
+run("Find Commands...");
+run("32-bit");
+//run("Brightness/Contrast...");
+run("Enhance Contrast", "saturated=0.35");
+run("Duplicate...", "title=C1-hela-cells-1.tif");
+run("Find Commands...");
+run("Gaussian Blur...", "sigma=1");
+selectWindow("C1-hela-cells.tif");
+run("Find Commands...");
+run("Gaussian Blur...", "sigma=2");
+run("Find Commands...");
+imageCalculator("Subtract create", "C1-hela-cells-1.tif","C1-hela-cells.tif");
+selectWindow("Result of C1-hela-cells-1.tif");
+....
+
+Your code is probably not identical, and may well be better. One problem
+with automatically generated macros is that they contain (almost)
+_everything_ – often including a lot of errant clicking, or other
+non-essential steps. For example, I am particularly fond of pressing kbd:[L]
+to bring up the `Find Commands` box, but these references should be
+removed from the macrofootnote:[Actually, this has been fixed in more recent versions of ImageJ - `Find Commands` is no longer included in a recorded macro.  However, it remains in this tutorial to show the process of cleaning up unnecessary lines anyway.].
+I also changed the contrast of an image, but
+this was only to look at it – and it does not need to be included in the
+macro. After deleting the unnecessary lines, I get:
+
+[source, java]
+....
+run("32-bit");
+run("Duplicate...", "title=C1-hela-cells-1.tif");
+run("Gaussian Blur...", "sigma=1");
+selectWindow("C1-hela-cells.tif");
+run("Gaussian Blur...", "sigma=2");
+imageCalculator("Subtract create", "C1-hela-cells-1.tif","C1-hela-cells.tif");
+....
+
+[[understanding-the-code]]
+Understanding the code
+^^^^^^^^^^^^^^^^^^^^^^
+
+You can most likely work out what the macro is doing, if not necessarily
+the terminology, just by looking at it. Taking the first line, `run` is
+a _function_ that tells ImageJ to execute a command, while `32-bit` is a
+piece of text (called a _string_) that tells it which command. Functions
+always tell ImageJ to do something or give you information, and can be
+recognized because they are normally followed by parentheses. Strings
+are recognizable both because they are inside double inverted commas and
+the script editor shows them in a different color. Notice also that
+each line needs to end with a semicolon so that the macro interpreter
+knows the line is over.
+
+Functions can require different numbers of pieces of information to do
+their work. At a minimum, `run` needs to know the name of the command
+and the image to which it should be applied – which here is taken to be
+whichever image is currently active, i.e. the one that was selected most
+recently. But if the command being used by `run` requires extra
+information of its own, then this is included as an extra string.
+Therefore
+
+[source, java]
+....
+run("Duplicate...", "title=C1-hela-cells-1.tif");
+....
+
+informs the `Duplicate` command that the image it creates should be
+called `C1-hela-cells-1.tif`, and
+
+[source, java]
+....
+run("Gaussian Blur...", "sigma=1");}
+....
+
+ensures that `Gaussian Blur...` is executed with a sigma value of 1.
+
+`selectWindow` is another function, added to the macro whenever you
+click on a particular window to activate it, and which requires the name
+of the image window to make active. From this you can see that my
+example file name was `C1-hela-cells.tif`. Without this line, the
+duplicated image would be filtered twice – and the original not at all.
+
+Finally, the `Image Calculator` command is special enough to get its own
+function in the macro language, `imageCalculator`. The first string it
+is given tells it both what sort of calculation to do, and that it
+should `create` a new image for the result – rather than replacing one
+of the existing images. The next two strings give it the titles of the
+images needed for the calculation.
+
+[[removing-title-dependancies]]
+Removing title dependancies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The fact that the original image title appears in the above macro is a
+problem: if you try to run it on another image, you are likely to find
+that it does not work because `selectWindow` cannot find what it is
+looking for. So the next step is to remove this title dependency so that
+the macro can be applied to any (2D) image.
+
+There are two ways to go about this. One is to insert a line that tells
+the macro the title of the image being processed at the start, e.g.
+
+[source, java]
+....
+titleOrig = getTitle();
+....
+
+where `getTitle()` is an example of a function that asks for
+information. The result is then stored as a _variable_, so that any time
+we type `titleOrig` later this will be replaced by the string
+corresponding to the original titlefootnote:[There is nothing special
+about `titleOrig` – this text can be changed to any variable name you
+like, so long as it is one word and does not contain special
+characters.]. Then we just find anywhere the title appears and replace
+the text with our new variable name, i.e. in this case by writing
+
+[source, java]
+....
+selectWindow(titleOrig);
+....
+
+If we do this, the window we want will _probably_ be activated as
+required. However, there is a subtle potential problem.
+It is possible that we have two images open at the
+same time with identical titles – in which case it is not clear which
+window should be selected, and so the results could be unpredictable. A
+safer approach is to get a reference to the _image ID_ rather than its
+title. The ID is a number that should be unique for each image, which is
+useful for ImageJ internally but which we do not normally care about
+unless we are programming. Using IDs, the updated macro code then
+becomes:
+
+[source, java]
+....
+idOrig = getImageID();
+run("32-bit");
+run("Duplicate...", "title=[My duplicated image]");
+idDuplicate = getImageID();
+run("Gaussian Blur...", "sigma=1");
+selectImage(idOrig);
+run("Gaussian Blur...", "sigma=2");
+imageCalculator("Subtract create", idDuplicate, idOrig);
+....
+
+We had to change `selectWindow` to `selectImage` for the IDs to work. I
+also changed the title of the duplicated image to something more
+meaninglessly general – which required square brackets, because it
+includes spaces that would otherwise mess things upfootnote:[In ImageJ's
+macro language, spaces in the string telling a command what to do are
+used to indicate that a separate piece of information is being given. So
+titles or file names that require spaces need to be put inside square
+brackets.]. Also, because the duplicated image will be active
+immediately after it was created, I ask ImageJ for its ID at that point.
+This lets me then pass the two IDs (rather than titles) to the
+`imageCalculator` command when necessary.
+
+[[adding-comments]]
+Adding comments
+^^^^^^^^^^^^^^^
+
+Whenever macros become more complicated, it can be hard to remember
+exactly what all the parts do and why. It is then a _very_ good idea to
+add in some extra notes and explanations. This is done by prefixing a
+line with `//`, after which we can write whatever we like because the
+macro interpreter will ignore it. These extra notes are called
+_comments_, and I will add them from now on.
+
+[[sec-raising_variables]]
+Customizing sigma values
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+By changing the size of the Gaussian filters, the macro can be tailored
+to detecting structures of different sizes. It would be relatively easy
+to find the `Gaussian Blur` lines and change the sigma values
+accordingly here, but adjusting settings like this in longer, more
+complex macros can be awkward. In such cases, it is helpful to extract
+the settings you might wish to change and include them at the start of
+the macro.
+
+To do this here, insert the following lines at the very beginning:
+
+[source, java]
+....
+// Store the Gaussian sigma values -
+// sigma1 should be less than sigma2
+sigma1 = 1.5;
+sigma2 = 2;
+....
+
+Then, update the later commands to:
+
+[source, java]
+....
+run("Gaussian Blur...", "sigma="+sigma1);
+selectImage(idOrig);
+run("Gaussian Blur...", "sigma="+sigma2);
+....
+
+This creates two new variables, which represent the sigma values to use.
+Now any time you want to change `sigma1` or `sigma2` you do not need to
+hunt through the macro for the correct lines: you can just update the
+lines at the topfootnote:[Note that `+` is used to join multiple strings
+into one, converting numbers into strings as needed. Therefore in this
+case the lines `sigma=+2` and `sigma=+sigma2` would each give us the
+same result: one longer string with the extra part appended at the end,
+i.e. `sigma=2.`].
+
+[[adding-interactivity]]
+Adding interactivity
+^^^^^^^^^^^^^^^^^^^^
+
+Usually I would stop at this point. Still, you might wish to share your
+macro with someone lacking your macro modification skills, in which case
+it would be useful to give this person a dialog box into which they
+could type the Gaussian sigma values that they wanted. An easy way to do
+this is to remove the sigma value information from the `run` command
+lines, giving
+
+[source, java]
+....
+run("Gaussian Blur...");
+....
+
+Since `Gaussian Blur` will not then know what size of filters to use, it
+will ask. The disadvantage of this is that the user is prompted to enter
+sigma values at two different times as the macro runs, which is slightly
+more annoying than necessary.
+
+The alternative is to create a dialog box that asks for all the required
+settings in one go. To do this, update the beginning of your macro to
+include something like the following:
+
+[source, java]
+....
+Dialog.create("Choose filter sizes for DoG filtering");
+Dialog.addNumber("Gaussian sigma 1", 1);
+Dialog.addNumber("Gaussian sigma 2", 2);
+Dialog.show();
+sigma1 = Dialog.getNumber();
+sigma2 = Dialog.getNumber();
+....
+
+The first line generates a dialog box with the title you specify. Each
+of the next two lines state that the required user input should be a
+number with the specified prompts and default values. The other lines
+simply show the dialog box and then read out whatever the user typed and
+puts it into variables. This is documented in ImageJ's
+http://rsbweb.nih.gov/ij/developer/macro/functions.html[list of built-in
+macro functions].
+
+You can download the complete example macro https://gist.github.com/petebankhead/53c0651dd1ad4f455622fc8eeefdc21e[here].
+
+[[suggested-improvements]]
+Suggested improvements
+^^^^^^^^^^^^^^^^^^^^^^
+
+You should now have a macro that does something vaguely useful, and
+which will work on most 2D images. It could nevertheless still be
+enhanced in many ways. For example,
+
+* You could close any unwanted images (e.g. the original and its
+duplicate) by selecting their IDs, and then inserting `close();`
+commands afterwards.
+* You could make the macro work on entire image stacks. If you want it
+to process each plane separately, this involves only inserting the words
+`stack` and `duplicate` in several places – by recording a new macro in
+the same way, but using a stack as your example image, you can see where
+to do this. If you want the filtering to be applied in 3D, you can use
+the `Gaussian Blur 3D...` command instead of `Gaussian Blur...`
+* You could create a log of which images you have processed, possibly
+including the settings used. The log is output by including a
+`log(text);` line, where `text` is some string you have created, e.g.
+`text = Image name:  + getTitle()`.
+* More impressively, you could turn the macro into a full spot-detector
+by thresholding the DoG filtered image, and then running the
+menu:Analyze[Analyze Particles...] command. If you want to measure original
+spot intensities, you should remember to go to
+menu:Analyze[Set Measurements...] to make sure the measurements are
+redirected to the original image – which you should possibly have
+duplicated at the beginning, since otherwise it will have been Gaussian
+filtered by the time your macro reaches the measurement stage.
+
+In any case, the process of developing a macro is usually the same:
+
+1.  Record a macro that does basically the right thing
+2.  Remove all the superfluous lines (contrast adjustment, errant
+clicking etc.)
+3.  Replace the image titles with image ID references
+4.  Add comments to describe what the macro is doing
+5.  Track down bugs and make improvements

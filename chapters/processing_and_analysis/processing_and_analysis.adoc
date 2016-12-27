@@ -1,0 +1,86 @@
+{% include "../includes.adoc" %}
+= Overview: Processing & analysis
+
+[.chapter-outline]
+.Chapter outline
+--
+* Image analysis usually consists of three main stages: preprocessing, detection & measurement
+* The same basic techniques reoccur in most analysis, with their combinations & parameters tailored to the particular task
+--
+
+
+[[the-goal-of-analysis]]
+The goal of analysis
+--------------------
+
+Successfully extracting useful information from fluorescence images
+usually requires triumphing in two main battles. The first is to
+overcome limitations in image quality and make the really interesting
+image content more clearly visible. This involves _image processing_,
+the output of which is another image. The second battle is to compute
+meaningful measurements. This is _image analysis_. Except when creating
+beautiful figures, the ultimate goal we are most interested in here is
+analysis – but processing is almost always indispensable to get us
+there.
+
+One way to approach image analysis is to see it like a puzzle. In the
+end, one hopes to extract some kind of quantitative measurements that
+are justified by the nature of the experiment and the facts of image
+formation, but there is no fixed way to go about that. This liberating
+realization suggests there is room for lateral thinking and sparks of
+creativity. Admittedly, if no solution comes to mind after pondering for
+a while then such an optimistic outlook quickly subsides and the
+'puzzle' may very well turn into an unbearably infuriating 'problem' –
+but the point here is that _in principle_ image analysis _can_ be
+enjoyable. All it takes is properly-acquired data, a modicum of
+enthusiasm, and the good luck not to be working on something
+horrendously difficult.
+
+Despite the diversity of algorithmsfootnote:[An 'algorithm' can be
+considered to be simply a 'sequence of steps'.] that could be
+constructed to analyze an image, in practice they generally tend to be
+built up from the following three stages:
+
+1.  _(Pre)processing_, e.g. subtract the background, use a filter to
+reduce noise
+2.  _Detection_, e.g. apply a threshold to locate interesting features,
+refine the detection
+3.  _Measurement_, e.g. count pixels to determine areas or volumes,
+quantify intensities
+
+Figure <<fig-workflow>> shows an example of how these can fit together.
+
+[sidebar]
+[[fig-workflow, 1]]
+--
+[cols="8*a"]
+[frame=none, grid=none, halign=center]
+|===
+2+|image::images/workflow_orig.png[title="Original image" caption="A: " float=center]
+2+|image::images/workflow_channel.png[title="Extract channel" caption="B: " float=center]
+2+|image::images/workflow_laplacian.png[title="Apply filters" caption="C: " float=center]
+2+|image::images/workflow_binary_1.png[title="Apply threshold" caption="D: " float=center]
+|
+2+|image::images/workflow_binary_2.png[title="Refine detection" caption="E: " float=center]
+2+|image::images/workflow_overlay.png[title="Relate (E) to (B)" caption="F: " float=center]
+2+|image::images/workflow_results.png[title="Measure" caption="G: " float=center]
+|
+|===
+**Figure {counter:figure}:**
+An simple image analysis workflow for detecting and measuring small spots, applied to the red channel of the sample image `HeLa Cells`.
+--
+
+Part II of this handbook provides a tour of many of the fundamental techniques that may
+be used for each of the three stages. Armed with only these techniques,
+a vast amount is already achievable: the challenge is to figure out how
+to string them together for whatever application you encounter. But even
+if you ultimately end up doing your analysis with someone else's
+automated software or plugin, knowing the main building blocks of image
+processing and analysis can still help explain what the algorithm you
+use is really doing and why.
+
+The following chapters deal primarily with 2D images.
+<<../multidimensional_processing/multidimensional_processing.adoc#chap, Processing data with higher dimensions>> then briefly discusses how
+the techniques can be extended into more dimensions, before
+<<../macro_intro/macro_intro.adoc#chap, Writing macros>> provides an introduction to creating macros that
+can be used to automate all or part of an analysis workflow.

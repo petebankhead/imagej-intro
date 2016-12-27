@@ -1,0 +1,17 @@
+{% include "../includes.adoc" %}
+= Acknowledgements
+
+Thanks must go to Ulrike, Nico, Christian, Astrid & Carlo from the http://nic.uni-hd.de[Nikon Imaging Center] at Heidelberg University for all their help, support, insights and ideas - during my time working alongside them, and beyond.
+
+Thanks too must go to Wayne Rasband, for changing the face of bioimage analysis by creating ImageJ in the first place, and to the Fiji and ImageJ2 teams for their fantastic efforts in continuing to support and extend this work.
+
+Most figures were created from original drawings, or from sample images obtained directly from Fiji under menu:File[Open Samples] (also available at http://imagej.nih.gov/ij/images/), apart from:
+
+* The sunny cell (shown below), thanks to Astrid Marx
+* The widefield and yeast cell images (e.g. in <<../dimensions/dimensions.adoc#chap, Dimensions>>), & fluorescent beads (e.g. in <<../formation_spatial/formation_spatial.adoc#chap, Blur & the PSF>>)
+thanks to Ulrike Engel
+* XKCD cartoons, from http://www.xkcd.com
+
+Finally, a huge personal thanks goes to Yvonne for her unerring support and patience with someone who spends far too much time at a computer... including the Christmas spent converting this book into becoming a GitBook.
+
+image::images/sunny.jpg[float=center]

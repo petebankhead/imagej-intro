@@ -1,0 +1,149 @@
+{% include "../includes.adoc" %}
+= From photons to pixels
+
+[.chapter-outline]
+.Chapter outline
+--
+* The pixel values in a fluorescence image depend upon numbers of detected photons
+* Blur & noise are inevitable
+--
+
+
+[[sec-intro_big_picture]]
+The big picture of fluorescence imaging
+---------------------------------------
+
+Images in fluorescence microscopy are formed by detecting light – and
+such small amounts of light that it can be thought of in terms of
+individual photons. The photons are emitted from fluorescent molecules
+within the sample being imaged. Sometimes these photon-emitting
+molecules may be the very things we are interested in studying, but
+often they have only been introduced to the sample because they have the
+helpful property of fluorescing when in the presence of the (otherwise
+non-fluorescent) molecules or structures we would _really_ like to see.
+
+Either way, the most that the image can tell us is how much light was
+emitted from any particular point. From this information we make our
+interpretations, such as about the presence of absence of some feature,
+about the size and shape of a structure, or about the relative
+concentration of a molecule. But in no case are we seeing the feature,
+structure or molecule directly in the recorded images: we only have
+measurements of numbers of photons we could detect.
+
+We will not give much attention here to what any particular number of
+photons emanating from a sample really indicates from a biological point
+of view – this would depend too much upon the design and details of the
+experiment, i.e. on the cells, stains and other substances involved. We
+can, however, often make general assumptions, such as that if we were to
+see (on average) twice as many photons originating from one region as
+from another, the number of fluorescing molecules must be around twice
+as high in the first regionfootnote:[This assumes a linear relationship,
+which does not always hold (e.g. if there is dye saturation, or high
+laser powers are used for illumination).]. But before we can worry about
+such things, we first need to concentrate upon how accurately we can
+even determine the number and origins of photons being emitted from the
+sample, given the limited quality of the images we can actually record.
+
+[[recording-images]]
+Recording images
+~~~~~~~~~~~~~~~~
+
+[sidebar]
+[[fig-intro_recording, 1]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/intro_sample.png[title="The basic setup" caption="A: " float=center]
+|image::images/intro_exciting.png[title="The specimen is illuminated; fluorophores become excited" caption="B: " float=center]
+|image::images/intro_imaging.png[title="Light is emitted; some enters the objective lens and is detected" caption="C: " float=center]
+|===
+**Figure {counter:figure}:**
+A (very) simplified diagram showing the steps of image formation in fluorescence microscopy.
+--
+
+Once a specimen has been prepared and is waiting underneath the
+microscope, the basic process of recording a fluorescence image
+comprises four main steps (summarized in Figure <<fig-intro_recording>>):
+
+1.  _Fluorophore excitation._ The fluorescent molecules (fluorophores)
+first need to be raised into an excited state. This happens upon the
+absorption of a photon, the energy (i.e. wavelength) of which should
+fall into a range specific to the fluorophore itself. This is carried
+out by illuminating the specimen, e.g. with a lamp or laser.
+2.  _Photon emission._ When returning to its ground state, each
+fluorophore may emit a photon – this time with a lower energy (i.e.
+longer wavelength) than the photon previously absorbed.
+3.  _Photon detection._ Most emitted photons can be thought of, rather
+informally, as 'shooting off in the wrong direction', in which case we
+have no hope of detecting them. But a proportion of the light should
+enter the objective lens of the microscope and be focussed towards a
+detector. When a photon strikes the detector, it is registered as a
+'hit' by the release of an electron (when we are lucky; detectors are
+imperfect so this might not occur, meaning the photon is effectively
+lost).
+4.  _Quantification & storage._ After fixed time intervals, the charges
+of the electrons produced by photons striking the detector are
+quantified, and from these quantifications pixel values are determined.
+A larger charge indicates more photons, which translates into a higher
+pixel value.
+
+
+[[errors-and-imprecisions]]
+Errors and imprecisions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+From the above summary, it is clear that we are quite some distance away
+from knowing exactly how much light is emitted from the specimen: most
+photons do not reach the detector, and many that do are still not
+registered. But since we can expect to always lose track of a similar
+proportion of emitted light – perhaps 90% – this does not matter much:
+we can expect all parts of the image to be similarly affected, so
+relative differences in brightness would still be reflected in our pixel
+values. However, there are two more critical ways in which the images we
+can record are less good than the images we would like:
+
+1.  _Uncertainty in space._ Ideally, all light originating from a
+particular point in the specimen would strike the detector in exactly
+the same place, and therefore end up contributing to exactly the same
+pixel. In practice, however, _the light beginning from one point cannot
+be focused back to a single point on the detector_. Consequently, it can
+end up being spread over several pixels. The end result is that the
+image is _blurred_.
+2.  _Uncertainty in brightness._ When an image is blurry we would also
+expect it to be smooth, but this is not usually what we get in
+fluorescence microscopy. Rather, there are seemingly random variations
+in brightness everywhere throughout the image: the _noise_. Some noise
+can come from imprecisions when determining the charge of small clouds
+of electrons quickly. But, more curiously, _the emission of the photons
+is itself random_, so that even if we detected every photon perfectly we
+would still get noisy images.
+
+These issues are depicted in Figure <<fig-colored_spots>>.
+
+[sidebar]
+[[fig-colored_spots, 2]]
+--
+[cols="a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/spots_ideal.png[title="Ideal imaging – a direct view of 'reality'" caption="A: " float=center]
+|image::images/spots_realistic.png[title="More realistic imaging – a blurred and noisy view" caption="B: " float=center]
+|===
+**Figure {counter:figure}:**
+The difference between what we might wish to image, and what we actually can image.
+In both cases (A and B), the 'real' scene is shown on the left.
+Ideally, the small colored spots in reality would directly map to colored spots of a related size and separation in the image (A).
+However, the light emitted from these spots would actually end up producing larger objects in the image, which can then blur together (B, center).
+Noise is further added to this blurriness to give us the best image we can really record (B, right).
+--
+
+The twin issues of blur and noise do not affect all images equally. For
+example, blur can cause us to misjudge the size of something by several
+hundred nanometers, but if the thing we are measuring is much larger
+than this then the error may be trivial. Also, if we are detecting many
+thousands of photons then the uncertainty due to noise may be extremely
+small relative to the numbers involved. But very often we are interested
+in measuring tiny structures in images containing only tens of photons
+at their brightest points. In these cases, the effects of blur and noise
+cannot be ignored.

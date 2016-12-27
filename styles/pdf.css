@@ -1,0 +1,110 @@
+/* CSS for website */
+
+.sidebarblock {
+    margin: 10px;
+    padding: 10px;
+    font-size: 0.9em;
+    box-shadow: 5px 5px 5px #aaaaaa;
+    background-color: #f2f2f2;
+}
+
+.sidebarblock .title {
+    font-size: 1.4em;
+    text-align: center;
+    font-weight: bold;
+}
+
+div.sidebarblock table {
+  margin-left:auto;
+  margin-right:auto;
+}
+
+div.sidebarblock table, div.sidebarblock td, div.sidebarblock th, div.sidebarblock tr:nth-child(odd), div.sidebarblock tr:nth-child(even) {
+    border: none;
+    border-bottom: none;
+    border-top: none;
+    background-color: rgba(0, 0, 0, 0);
+    background: transparent;
+}
+
+.chapter-outline {
+  margin: 10px;
+  padding: 10px;
+  font-size: 0.9em;
+  box-shadow: 5px 5px 5px #aaaaaa;
+  background-color: #f8f4ee;
+}
+
+.chapter-outline .title {
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.standout {
+  background-color: #f8f4ee;
+  text-align: center;
+  font-weight: bold;
+}
+
+.question {
+  background-color: #f6eeee;
+}
+
+.question .title {
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.solution {
+  margin: 10px;
+  padding: 10px 10px 10px 10px;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.practical {
+  background-color: #eef6ee;
+}
+
+.practical .title {
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.info {
+  background-color: #eeeef6;
+}
+
+.imageblock .title {
+  font-size: 0.9em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.menuseq {
+  background-color: rgba(0, 0, 0, 0.025);
+  padding: 2px;
+}
+
+.markdown-section code {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+.markdown-section sup {
+  font-size: 0.8em;
+}
+
+#footnotes {
+  font-size: 0.8em;
+}
+
+.button {
+  background-color: transparent;
+  width:auto;
+  text-align:center;
+  float:none;
+  line-height:auto;
+  padding:0px;
+}

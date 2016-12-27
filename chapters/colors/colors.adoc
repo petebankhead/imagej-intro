@@ -1,0 +1,317 @@
+{% include "../includes.adoc" %}
+= Channels & colors
+
+[.chapter-outline]
+.Chapter outline
+--
+* Images with multiple color channels may display differently in different software
+* RGB images are a special case, and these look consistent across different software
+* In ImageJ, multichannel images that are not RGB may be referred to as composite images
+* Conversion of composite to RGB often loses information!
+--
+
+[[different-kinds-of-color-image]]
+== Different kinds of color image
+
+One way to introduce color into images is to use a suitable LUT, as
+described in <<../images_and_pixels/images_and_pixels.adoc#chap, Images & pixels>>. However, then the fact
+that different colors could be involved in the display of such images
+was really only incidental: at each location in the image there was
+still only one channel, one pixel and one value.
+
+For images in which color is more intrinsic – that is, when the channel
+number is an extra dimension (see <<../dimensions/dimensions.adoc#chap, Dimensions>>) and we want to
+display channels superimposed on top of one another – things become more
+complex, because the precise color in the display for one location now
+depends upon a combination of multiple pixel values mixed together.
+
+There are two main types of color image we will consider in this
+chapter, and it is important to know the difference between them:
+
+1.  _Multichannel / composite images_ – good for analysis, since they
+can contain the original pixels given by the microscope, but may appear
+differently (or not be readable at all) in some software
+2.  _RGB images_ – good for display, because they have a consistent
+appearance, but often unsuitable for quantitative analysis because
+original pixel values are likely to be lost
+
+[[multichannel-images]]
+Multichannel images
+-------------------
+
+We consider a 'true' multichannel image here to be one in which the
+channel number is an extra dimension. Pixel values for each channel are
+often determined from light that has been filtered according to its
+wavelength. In principle, any LUT might be applied to each channel, but
+it makes sense to choose LUTs that somehow relate to the wavelength
+(i.e. color) of light detected for the corresponding channels. Channels
+can then be overlaid on top of one another, and their colors further
+merged for display (e.g. high values in green and red channels are shown
+as yellow).
+
+The important feature of these images is that the actual channel
+information is always retained, and so the original pixel values remain
+available. This means you can still extract channels or adjust their
+LUTs as needed.
+
+[[composite-images-in-imagej]]
+Composite images in ImageJ
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[sidebar]
+[[fig-fiji_composite, 1]]
+--
+[cols="4*a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/composite_all.jpg[title="Composite image" caption="A: " float=center]
+|image::images/composite_red.jpg[title="Red channel" caption="B: " float=center]
+|image::images/composite_green.jpg[title="Green channel" caption="C: " float=center]
+|image::images/composite_blue.jpg[title="Blue channel" caption="D: " float=center]
+|===
+**Figure {counter:figure}:**
+ImageJ composite image sample `Fluorescent Cells`.
+Using the `Channels Tool...` and the slider at the bottom of the window, you can view the channels individually or simultaneously.
+--
+
+In ImageJ, such representations of multiple channels are sometimes known
+as _composite images_. An example can be opened by selecting
+menu:File[Open Samples > Fluorescent Cells (400K)]
+(Figure <<fig-fiji_composite>>). As you move the slider at the bottom of
+the image, it might not look like much is happening. But if you also
+open the `Brightness/Contrast...` tool you can see that the color of the
+histogram changes for each slider position. Adjusting the contrast then
+adjusts it _only for the current channel_. This is very useful because
+quite different contrast settings can be required for each channel to
+get a decent final appearance. Also, as you move the mouse over the
+image the 'value' shown in the status bar is the pixel value _only for
+that channel_.
+
+Composite images allow us to see multiple channels at the same time. But
+sometimes this masks information and it helps to look at each channel
+individually. One way to do this is to choose
+menu:Image[Color > Split Channels], which will give you separate images for
+each channel. But a more powerful option is to select
+menu:Image[Color > Channels Tool...].
+
+.Practical
+[.practical]
+****
+Using the `Fluorescent Cells (400K)` image, explore the use of the
+`Channels Tool...` until you are comfortable with what it does, including
+what happens when you click on the colors under `More>>`.
+
+How do composite images relate to the LUTs we described before? Try out
+some of the commands in menu:Image[Lookup Tables > ] when investigating this.
+
+.Answer
+[.solution]
+--
+Each individual channel in a composite image is really just being shown
+with a LUT – most often one that is predominantly red, green or blue.
+The final displayed color results from mixing the channel colors
+together. Therefore, in principle any LUT might be used for each
+channel. But unconventional LUT choices can easily result in rather
+avant garde images that are difficult to interpret.
+--
+
+****
+
+[[rgb-images]]
+RGB images
+----------
+
+Composite images can contain any number of channels, and these channels
+can have any of the bit-depths ImageJ supports (see
+<<../bit_depths/bit_depths.adoc#chap, Types & bit-depths>>) – so long as all channels have the same
+bit-depth. By contrast, RGB images invariably have 3 channels, and each
+channel is 8-bitfootnote:[This is the case in ImageJ, and usually (but
+not always) in other software. For example, it is possible for an RGB
+image to be 16-bit, and some contain an extra 'alpha' channel (which
+relates to transparency), and so might be called ARGB or RGBA. But such
+images do not often occur in science.]. Furthermore, the channel colors
+in an RGB image are fixed to __r__ed, __g__reen and __b__lue.
+
+This already makes clear that composite images can (at least
+potentially) contain much more information. However, the inflexibility
+of RGB images has one important advantage: compatibility. Computer
+monitors generate colors for display by mixing red, green and blue
+light.  RGB images can dictate directly how much of each color
+should be used.  This means that the values in each RGB channel really do determine the final
+image appearance, without any ambiguity regarding which LUTs should be
+applied because these are already known. Therefore all software can
+display RGB images in the same way.
+
+[[rgb-images-in-imagej]]
+RGB images in ImageJ
+~~~~~~~~~~~~~~~~~~~~
+
+RGB images can be easily distinguished from composite images in ImageJ
+both because they do not have an additional slider at the bottom to move
+between channels, and because the text `RGB` appears at the top of the
+image window in place of the bit-depth. Also, moving the cursor over an
+RGB image leads to 3 numbers following the `value` label in the main
+status bar: the pixel values for each of the channels.
+
+Changing the brightness/contrast of an RGB image is also different.
+Making adjustments using the normal `Brightness/Contrast...` tool leads to
+the appearance of all 3 channels being affected simultaneously.
+
+[[comparison-of-color-images]]
+Comparison of color images
+---------------------------
+
+Only composite images can therefore store more than three channels, or
+data with a bit-depth higher than 8. Consequently, if acquisition
+software provides the option to save data in an RGB format, this
+temptation should normally be resisted – unless you _also_ save the
+image in the software manufacturer's preferred, non-RGB format, and only
+use this latter version for analysisfootnote:[This assumes fluorescence microscopy data. For an application when RGB is often suitable, see <<../files/files.adoc#sec-whole_slide_images, Whole slide images>>.].
+The reason is that the conversion
+of a composite image to RGB _can_ result in a significant loss of
+information, and if we only have the RGB version it may be impossible
+for us to say whether or not this loss has occurred.
+
+.Practical
+[.practical]
+****
+You can test the compatibility of composite and RGB images by opening
+menu:File[Open Samples > HeLa Cells] image, and saving it using
+menu:File[Save As > Tiff...] both before and after running
+menu:Image[Type > RGB Color] to convert the original 16-bit composite data
+to RGB. Try then opening both saved images in other software (e.g.
+Microsoft PowerPoint) and compare their appearance.
+****
+
+.Practical
+[.practical]
+****
+Think of at least 2 ways in which converting a composite image to RGB
+can lose information.
+
+You can explore this by comparing the images `Cell_composite.tif` and
+`Cell_RGB.tif`. The menu:Image[Color > Split Channels] command should help.
+
+.Answer
+[.solution]
+--
+One way that converting an image to RGB can lose information is if the
+original data is 16-bit before conversion and 8-bit afterwards, causing
+rounding and/or clipping to occur (see <<../bit_depths/bit_depths.adoc#chap, Types & bit-depths>>).
+
+Another is that during conversion the channels have been forced to be
+purely red, green and blue. But perhaps they were not originally so, and
+separate channels have been merged into the same ones. If you had
+started with more than three channels, this will definitely have
+occurred, but even if you had fewer channels you can have problems (like
+in the `Cell_composite.tif` and `Cell_RGB.tif` examples).
+
+The trouble with _only_ having an RGB image is that it is no longer
+possible to know for sure what the original data looked like, to be able
+to figure out whether anything has been lost. For example, perhaps you
+have managed to generate a magnificent image consisting of turquoise,
+yellow and dazzling pink channels. Each pixel is displayed on screen as
+a combination of those colors. However, precisely the same color for
+any pixel can also be represented – rather more simply – as a mixture of
+red, green and blue. So no matter what channels and colors you began
+with, the final result after merging can be replicated using red, green
+and blue channels. But if you _only_ have the RGB version, you might
+never be able to extract the original 3 channels again. Their colors
+could be so mixed together that the original pixel values would be
+irretrievably lost.
+
+And so the good things about RGB images is that they look identical to
+the original image you had before conversion, and other software (e.g.
+webbrowsers or PowerPoint) can understand them effortlessly. But the
+_potentially very bad_ thing about RGB images is that creating them
+requires conversion, and after this it might very well be _impossible_
+to regain the original pixel values.
+--
+
+****
+
+Still, there is no way of _displaying_ a composite image that cannot be
+replicated by an RGB image, because the monitor itself works with RGB
+data (translated to red, green and blue light). Therefore for creating
+figures or presentations, converting data to RGB is a very _good_ idea
+for the compatibility advantages it brings. In the end, it is normal to
+need to keep at least two versions of each dataset: one in the original
+(multichannel / composite) format, and one as RGB for display. This RGB
+image is normally created as the _final_ step, after applying any
+processing or LUT adjustments to the original data.
+
+[[other-color-spaces]]
+Other color spaces
+~~~~~~~~~~~~~~~~~~~
+
+Since monitors work with RGB images, in practice what you are actually
+seeing on screen is always an RGB image – even when we are actually
+working with the data in a composite image. The RGB version is just
+quietly made in the background based on the composite data so that the
+monitor can give us something to look at. If we convert the composite
+image to RGB we then basically just throw away all the extra useful
+information the composite contained, and keep only the displayed
+version.
+
+However, there are more ways to represent colors than just mixtures of
+red, green and blue light. One familiar example is using cyan, magenta,
+yellow and black ink – leading to a CMYK representation of color. In
+practice, fewer colors can be faithfully reproduced using CMYK when
+compared to RGB, which is one reason why printed images often do not
+seem to have quite the same colors as the same images on screen.
+
+The other main color representation that turns up in ImageJ is HSB,
+which stands for _Hue_, _Saturation_ and _Brightness_. An RGB image can
+be converted to HSB using menu:Image[Type > HSB Stack]. In practice, this
+representation can be useful for detecting features in color images
+that were originally RGB (e.g. conventional photographs, or some brightfield images), but it is
+largely irrelevant for fluorescence microscopy.
+
+.Choosing channel colors
+[.info]
+****
+image:images/fluorescent_cells_orig_crop.jpg[180,180,float="right"]
+
+By changing the LUTs, channels can be assigned any color you like.
+Although red/green images are widespread, especially for colocalization,
+they are particularly unhelpful for colorblind people. More accessible
+images can be created by switching the LUTs of at least one channel to
+something more suitable (e.g. Red &rarr; Magenta) – although displaying both
+channels separately is better still.
+
+image:images/fluorescent_cells_cb_crop.jpg[180,180,float="right"]
+
+You can also test the effects of different colors using the Fiji
+command menu:Image[Color > Simulate Color Blindness] (note that this may
+require converting the image to RGB first).
+
+More information about generating figures with suitable colors is
+available at
+http://www.nature.com/nmeth/journal/v8/n6/full/nmeth.1618.html.
+****
+
+.Question
+[.question]
+****
+ImageJ has two different copying commands, menu:Edit[Copy] and
+menu:Edit[Copy to System]. Why?
+
+_Note:_ When investigating this, you should explore menu:Edit[Paste],
+alongside two commands in the menu:File[New > ] submenu. Be on the lookout
+for any conversions.
+
+.Answer
+[.solution]
+--
+menu:Edit[Copy] and menu:Edit[Copy to System] have quite distinct purposes. The former
+allows you to copy part of an individual image slice (i.e. a 2D part of
+a particular color channel) and paste it into another image while
+exactly preserving the original image type and pixel values. However,
+this image type might well not be compatible with other software,
+therefore images copied in this way cannot be accessed outside ImageJ.
+If you want to copy an image and paste it into other software, you need
+menu:Edit[Copy to System]. This copies the image to the system clipboard,
+converting it to RGB in the process, thereby preserving appearance – but
+not necessarily the pixel values.
+
+****

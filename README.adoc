@@ -1,0 +1,29 @@
+= Analyzing fluorescence microscopy images with ImageJ
+
+This work is made available in the hope it will be useful to researchers in biology who need to quickly get to grips with the main principles of image analysis.
+
+Much of the initial text was written during a time when I lived and worked in Heidelberg, which is reflected in many of the illustrations.
+
+The original handbook was a PDF created with https://www.latex-project.org[_LaTeX_].  This PDF version is still probably the best for printing.  You can find it at https://www.researchgate.net/publication/260261544_Analyzing_fluorescence_microscopy_images_with_ImageJ[ResearchGate].
+
+However, since then the content has been revised and translated into http://asciidoctor.org/docs/what-is-asciidoc/[AsciiDoc] for three reasons:
+
+* To make it available as a website, through https://www.gitbook.com/book/petebankhead/imagej-intro/details[GitBook]
+* To make it easier and faster to update the contents
+* To make possible more community involvement, both through Gitbook's own https://www.gitbook.com/blog/features/discussions[comments and discussions], or using the source code hosted on  https://github.com/petebankhead/imagej-intro[GitHub]
+
+This book is based primarily on the Wayne Rasband's fantastic http://imagej.net[ImageJ].  Nevertheless, the range of flexible and powerful open source software and resources for bioimage analysis continues to grow.  With that in mind, you might also consider becoming familiar with some alternatives as well, such as:
+
+* https://imagej.net/ImageJ2[ImageJ2] and http://icy.bioimageanalysis.org[Icy], which are designed to handle a very wide range of applications
+* http://cellprofiler.org[CellProfiler] and https://tech.knime.org/community/image-processing[KNIME], especially for high-throughput analysis and data mining
+* http://ilastik.org[ilastik], especially when its powerful machine learning features are needed to identify or classify challenging structures
+* http://qupath.github.io[QuPath], especially for digital pathology or whole slide image analysisfootnote:[Since http://qupath.github.io[QuPath] is my latest project, I admit some bias in suggesting it here.]
+
+Finally, the goal of this handbook is to give enough background to make it possible to progress quickly in bioimage analysis.  To go deeper, as a complement to this book I highly recommend the excellent (and free) http://www.imaging-git.com/olympus-website-bioimage-data-analysis[Bioimage Data Analysis], edited by Kota Miura.
+
+All in all, I hope that someone might find this a useful introduction, and it may play a small part in helping to support the use and development of open source software and teaching materials for research.
+
+_Pete, December 2016_
+
+
+image::images/title_cells.jpg[width=400, float=center]

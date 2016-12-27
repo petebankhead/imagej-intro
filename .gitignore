@@ -1,0 +1,9 @@
+# Ignore hidden & helper files
+.DS_Store
+.Trash-*
+Thumbs.db
+
+node_modules/*
+
+# Ignore any compiled book
+_book/*

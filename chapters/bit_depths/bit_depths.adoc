@@ -1,0 +1,484 @@
+{% include "../includes.adoc" %}
+= Types & bit-depths
+
+[.chapter-outline]
+.Chapter outline
+--
+* The bit-depth & type of an image determine what pixel values it can contain
+* An image with a higher bit-depth can (potentially) contain more information
+* For acquisition, most images have the type unsigned integer
+* For processing, it is often better to use floating point types
+* Attempting to store values outside the range permitted by the type & bit-depth leads to clipping
+--
+
+
+[[possible-impossible-pixels]]
+Possible & impossible pixels
+----------------------------
+
+As described in <<../images_and_pixels/images_and_pixels.adoc#chap, Images & Pixels>>, each pixel has a
+numerical value – but a pixel cannot typically have just _any_ numerical
+value it likes. Instead, it works under the constraints of the image
+_type_ and _bit-depth_. Ultimately the pixels are stored in some binary
+format: a series of bits (__bi__nary digi__ts__), i.e. ones and zeros.
+The bit-depth determines how many of these ones and zeros are available
+for the storage of each pixel. The type determines how these bits are
+interpreted.
+
+[[representing-numbers-with-bits]]
+Representing numbers with bits
+------------------------------
+
+Suppose you are developing a code to store numbers, but in which you are
+only allowed to write ones and zeros. If you are only allowed a single
+one or zero, then you can only actually represent two different numbers.
+Clearly, the more ones and zeros you are allowed, the more unique
+combinations you can have – and therefore the more different numbers you
+can represent in your code.
+
+
+[[a-4-bit-example]]
+A 4-bit example
+~~~~~~~~~~~~~~~
+
+The encoding of pixel values in binary digits involves precisely this
+phenomenon. If we first assume we have a 4 bits, i.e. 4 zeros and ones
+available for each pixel, then these 4 bits can be combined in 16
+different ways:
+
+[cols="4*^"]
+|===
+|`0000` &rarr; `0` | `0100` &rarr; `4` | `1000` &rarr; `8` | `1100` &rarr; `12` |
+`0001` &rarr; `1` | `0101` &rarr; `5` | `1001` &rarr; `9` | `1101` &rarr; `13` |
+`0010` &rarr; `2` | `0110` &rarr; `6` | `1010` &rarr; `10` | `1110` &rarr; `14` |
+`0011` &rarr; `3` | `0111` &rarr; `7` | `1011` &rarr; `11` | `1111` &rarr; `15` |
+|===
+
+image:images/1_to_10.png[200,200,float="right",title="http://xkcd.com/953/"]
+
+
+Here, the number after the arrow shows how each sequence of bits _could_
+be interpreted. We do not _have_ to interpret these particular
+combinations as the integers from 0–15, but it is common to do so – this
+is how binary digits are understood using an _unsigned integer_ type.
+But we could also easily decide to devote one of the bits to giving a
+sign (positive or negative), in which case we could store numbers in the
+range -8 – +7 instead, while still using precisely the same bit combinations. This
+would be a _signed integer_ type.
+
+Of course, in principle there are
+infinite other variations of how we interpret our 4-bit binary sequences
+(integers in the range -7 – +8, even numbers between 39 to 73, the first
+16 prime numbers etc.), but the ranges I've given are the most normal.
+
+In any case, the main point is that knowing the _type_ of an image is essential to be able to
+decipher the values of its pixels from how they are stored in binary.
+
+[[increasing-bit-depths]]
+Increasing bit depths
+~~~~~~~~~~~~~~~~~~~~~
+
+So with 4 bits per pixel, we can only represent 16 unique values. Each
+time we include another bit, we double the number of values we can
+represent.
+
+Computers tend to work with groups of 8 bits, with each group
+known as 1 byte. Microscopes that acquire 8-bit images are still
+common, and these permit 2^8^ = 256 different pixel values,
+which, understood as unsigned integers, fall in the range 0–255. The next
+step up is a 16-bit image, which can contain
+2^16^ = 65536 values: a dramatic improvement (0–65535).
+Of course, because twice as many bits are needed for each pixel in the
+16-bit image when compared to the 8-bit image, twice as much storage
+space is required - leading to larger file sizes.
+
+[[floating-point-types]]
+Floating point types
+~~~~~~~~~~~~~~~~~~~~
+
+Although the images we acquire are normally composed of unsigned
+integers, we will later explore the immense benefits of processing
+operations such as averaging or subtracting pixel values, in which case
+the resulting pixels may be negative or contain fractional parts.
+_Floating point_ type images make it possible to store these new, not-necessarily-integer values
+in an efficient way.
+
+Floating point pixels have variable precision depending upon whether or
+not they are representing very small or very large numbers. Representing
+a number in binary using floating point is analogous to writing it out
+in standard form, i.e. something like 3.14 × 10^8^.
+In this case, we have managed to represent 314000000 using only 4
+digits: 314 and 8 (the 10 is already known in advance). In the binary
+case, the form is more properly something like
+± 2^__M__^ × N: we have one bit devoted to the sign, a
+fixed number of additional bits for the exponent _M_, and
+the rest to the main number _N_ (called the fraction).
+
+A 32-bit floating point number typically uses 8 bits for the exponent
+and 23 bits for the fraction, allowing us to store a very wide range of
+positive and negative numbers. A 64-bit floating point number uses 11
+bits for the exponent and 52 for the fraction, thereby allowing both an
+even wider range and greater precision. But again these require more
+storage space than 8- and 16-bit images.
+
+.Question
+[.question]
+****
+image:images/pixel_types.png[200,200,float="right"]
+The pixels on the right all belong to different images. In each case,
+identify what possible types those images could be.
+
+Your options are:
+
+* Signed integer
+* Unsigned integer
+* Floating point
+
+.Answer
+[.solution]
+--
+The possible image types, from left to right:
+
+1.  Signed integer or floating point
+2.  Unsigned integer, signed integer or floating point
+3.  Floating point
+--
+
+****
+
+[[sec-acquisition_clipping]]
+Limitations of bits
+-------------------
+
+The main point of <<../images_and_pixels/images_and_pixels.adoc#chap, Images & Pixels>> is that we need to
+keep control of our pixel values so that our final analysis is
+justifiable. In this regard, there are two main bit-related things that
+can go wrong when trying to store a pixel value in an image:
+
+1.  _Clipping:_ We try to store a number outside the range supported, so
+that the closest valid value is stored instead, e.g. trying to put -10
+and 500 into an 8-bit unsigned integer will result in the values 0 and
+255 being stored instead.
+2.  _Rounding:_ We try to store a number that cannot be represented
+exactly, and so it must be rounded to the closest possible value, e.g.
+trying to put 6.4 in an 8-bit unsigned integer image will result in 6
+being stored instead.
+
+[[data-clipping]]
+Data clipping
+~~~~~~~~~~~~~
+
+Of the two problems, clipping is usually the more serious, as shown in
+Figure <<fig-bits_convert>>. A clipped image contains pixels with values
+equal to the maximum or minimum supported by that bit-depth, and it is
+no longer possible to tell what values those pixels _should_ have. The
+information is irretrievably lost.
+
+[sidebar]
+[[fig-bits_convert, 1]]
+--
+[cols="a,a,a"]
+[frame=none, grid=none, halign=center]
+|===
+|image::images/bit_convert_orig.png[]
+|image::images/bit_convert_clipped.png[]
+|image::images/bit_convert_scaled.png[]
+
+|image::images/bit_convert_orig.png[]
+|image::images/bit_convert_clipped_enhanced.png[]
+|image::images/bit_convert_scaled_enhanced.png[]
+
+|image::images/bit_convert_orig_plot.png[title="16-bit original", caption="A: "]
+|image::images/bit_convert_clipped_plot.png[title="8-bit clipped", caption="B: "]
+|image::images/bit_convert_scaled_plot.png[title="8-bit scaled", caption="C: "]
+|===
+**Figure {counter:figure}:**
+Storing an image using a lower bit-depth, either by clipping or by scaling the values.
+The top row shows all images with the same minimum and maximum values to determine the contrast, while the middle row shows shows the same images with the maximum set to the highest pixel value actually present.
+The bottom row shows horizontal pixel intensity profiles through the center of each image, using the same vertical scales.
+One may infer that information has been lost in both of the 8-bit images, but more much horrifically when clipping was applied.
+The potential reduction in information is only clear in \(C) when looking at the profiles, where rounding errors are likely to have occurred.
+--
+
+Clipping can already occur during image acquisition, where it may be
+called _saturation_. In fluorescence microscopy, it depends upon three
+main factors:
+
+1.  _The amount of light being emitted._ Because pixel values depend
+upon how much light is detected, a sample emitting very little light is
+less likely to require the ability to store very large values. Although
+it still might because of...
+2.  _The gain of the microscope._ Quantifying very tiny amounts of light
+accurately has practical difficulties. A microscope's gain effectively
+amplifies the amount of detected light to help overcome this before
+turning it into a pixel value (see <<../microscope_types/microscope_types.adoc#chap, Microscopes & detectors>>).
+However, if the gain is too high, even a small number of detected
+photons could end up being over-amplified until clipping occurs.
+3.  _The offset of the microscope._ This effectively acts as a constant
+being added to every pixel. If this is too high, or negative, it can
+also push the pixels outside the permissible range.
+
+If clipping occurs, we no longer know what is happening in the brightest
+or darkest parts of the image – which can thwart any later analysis.
+Therefore _during image acquisition, any gain and offset controls should
+be adjusted as necessary to make sure clipping is avoided._
+
+.Question
+[.question]
+****
+When acquiring an 8-bit unsigned integer image, is it fair to say your
+data is fine so long as you do not store pixel values < 0
+or > 255?
+
+.Answer
+[.solution]
+--
+No! At least, not really.
+
+You _cannot_ store pixels outside the range 0–255. But if your image
+contains pixels with either of those extreme values, you cannot be sure
+whether or not clipping has occurred. Therefore, you should ensure
+images you acquire do not contain any pixels with the most extreme
+values permitted by the image bit-depth. If you want to know for sure
+you can trust your 8-bit data is not clipped, the maximum range would be
+1–254.
+--
+
+****
+
+.Question
+[.question]
+****
+The bit-depth of an image is probably some multiple of 8, but the
+bit-depth that a detector (e.g. CCD) can support might not be.
+
+For example, what is the maximum value in a 16-bit image that was acquired
+using a camera with a 12-bit output?
+
+And what is the maximum value in a
+8-bit image acquired using a camera with a 14-bit output?
+
+.Answer
+[.solution]
+--
+The maximum value of a 16-bit image obtained using a 12-bit camera is
+4095 (i.e. 2^12^-1).
+
+The maximum value of an 8-bit image
+obtained using a 14-bit camera is 255 – the extra bits of the camera do
+not change this. But if the image was saved in 16-bit instead, the
+maximum value would be 16383.
+
+So be aware that the actual range of possible values depends upon the
+acquisition equipment as well as the bit-depth of the image itself. The
+lower bit-depth will dominate.
+--
+
+****
+
+[[rounding-errors]]
+Rounding errors
+~~~~~~~~~~~~~~~
+
+Rounding is a more subtle problem than clipping. Again it is relevant as
+early as acquisition. For example, suppose you are acquiring an image in
+which there really are 1000 distinct and quantifiable levels of light
+being emitted from different parts of a sample. These could not possibly
+be given different pixel values within an 8-bit image, but could
+normally be fit into a 16-bit or 32-bit image with lots of room to
+spare. If our image is 8-bit, and we want to avoid clipping, then we
+would need to scale the original photon counts down first – resulting in
+pixels with different photon counts being rounded to have the same
+values, and their original differences being lost.
+
+Nevertheless, rounding errors during acquisition are usually small.
+Rounding can be a bigger problem when it comes to processing operations
+like filtering, which often involve computing averages over many pixels
+(see <<../filters/filters.adoc#chap, Filters>>). But, fortunately, at this post-acquisition
+stage we can convert our data to floating point and then get fractions
+if we need them.
+
+
+.Floating point rounding errors
+[.info]
+****
+Using floating point types does not
+completely solve rounding issues. In fact, even a 64-bit floating point
+image cannot store all useful pixel values with perfect precision, and
+seemingly straightforward numbers like 0.1 are only imprecisely
+represented.
+
+But this is not really unexpected: this binary limitation
+is similar to how we cannot write 1/3 in decimal exactly, but rather we
+can get only get closer and closer for so long as we are willing to add
+more 3's after the decimal point.
+
+In any case, rounding 0.1 to 0.100000001490116119384765625 (a possible floating point representation)
+is not so bad as rounding it to 0 (an integer representation), and the
+imprecisions of floating point numbers in image analysis are usually
+small enough to be disregarded.
+
+See http://xkcd.com/217/ for more information.
+****
+
+
+=== More bits are better... usually
+
+From considering both clipping and rounding, the simple rule of
+bit-depths emerges: if you want the maximum information and precision in
+your images, more bits are better. This is depicted in
+Figure <<fig-blocks_and_bits>>. Therefore, when given the option of
+acquiring a 16-bit or 8-bit image, most of the time you should opt for
+the former.
+
+[sidebar]
+[[fig-blocks_and_bits, 2]]
+--
+[cols="a"]
+[frame=none, grid=none, halign=center, width=75%]
+|===
+|image::images/blocks_and_bits.jpg[title="Illustration of the comparative accuracy of __(left to right)__ 8-bit, 16-bit and 32-bit images." caption="" float=center]
+|===
+**Figure {counter:figure}:**
+Building blocks and bit depth.
+If an 8-bit image is like creating a sculpture out of large building blocks, a 16-bit image is more like using lego and a 32-bit floating point image resembles using clay.
+Anything that can be created with the blocks can also be made from the lego; anything made from the lego can also be made from the clay.
+This does not work in reverse: some complex creations can only be represented properly by clay, and building blocks permit only a crude approximation at best.
+On the other hand, if you only need something blocky, it’s not really worth the extra effort of lego or clay.
+And, from a very great distance, it might be hard to tell the difference.
+--
+
+.Question
+[.question]
+****
+Although _more bits are better_ is a simple rule we can share with those
+who do not really understand the subtleties of bit-depths, it should not be
+held completely rigorously. When might more bits _not_ be better?
+
+.Answer
+[.solution]
+--
+Reasons why a lower bit depth is _sometimes_ preferable to a higher one
+include:
+
+* A higher bit-depth leads to larger file sizes, and potentially slower
+processing. For very large datasets, this might be a bigger issue that
+any loss of precision found in using fewer bits.
+* The amount of light detected per pixel might be so low that thousands
+of possible values are not required for its accurate storage, and 8-bits
+(or even fewer) would be enough. For the light-levels in biological
+fluorescence microscopy, going beyond 16-bits would seldom bring any
+benefit.
+
+But with smallish datasets for which processing and storage costs are
+not a problem, it is safest to err on the side of more bits than we
+strictly need.
+--
+
+****
+
+Converting images in ImageJ
+---------------------------
+
+For all that, sometimes it is necessary to convert an image type or
+bit-depth, and then caution is advised.
+
+This conversion could even sometimes be required against
+your better judgement, but you have little choice because a particular
+command or plugin that you need has only been written for specific types
+of image. And while this could be a rare event, the process is
+unintuitive enough to require special attention.
+
+Conversions are applied in ImageJ using the commands in the
+menu:Image[Type > ] submenu. The top three options are `8-bit` (unsigned
+integer), `16-bit` (unsigned integer) and `32-bit` (floating point),
+which correspond to the types currently supportedfootnote:[The remaining
+commands in the list involve color, and are each variations on 8-bit
+unsigned integers (see <<../colors/colors.adoc#chap, Channels & colors>>).].
+
+In general, _increasing_ the bit-depth of an image should not change the
+pixel values: higher bit-depths can store all the values that lower
+bit-depths can store. But going backwards that is not the case, and when
+_decreasing_ bit-depths one of two things can happen depending upon
+whether the option `Scale When Converting` under
+menu:Edit[Options > Conversions...] is checked or not.
+
+* `Scale When Converting` is _not_ checked: pixels are simply given the
+closest valid value within the new bit depth, i.e. there is clipping and
+rounding as needed.
+* `Scale When Converting` _is_ checked: a constant is added or
+subtracted, then pixels are further divided by another constant before
+being assigned to the nearest valid value within the new bit depth. Only
+_then_ is clipping or rounding applied if it is still needed.
+
+Perhaps surprisingly, the constants involved in scaling are determined
+from the `Minimum` and `Maximum` in the current `Brightness/Contrast...`
+settings: the `Minimum` is subtracted, and the result is divided by
+`Maximum` - `Minimum`. Any pixel value that was lower than `Minimum` or
+higher than `Maximum` ends up being clipped. Consequently, _converting
+to a lower bit-depth with scaling can lead to different results
+depending upon what the brightness and contrast settings were_.
+
+.Question
+[.question]
+****
+Why is scaling _usually_ a good thing when reducing the bit-depth, and
+why is a constant usually subtracted before applying this scaling?
+
+_Hint:_ As an example, consider how a 16-bit image containing values in
+the range 4000–5000 might be converted to 8-bit first without scaling,
+and then alternatively by scaling with or without the initial constant
+subtraction. What constants for subtraction and division would usually
+minimize the amount of information lost when converting to 8-bit image,
+limiting the errors to rounding only and not clipping?
+
+.Answer
+[.solution]
+--
+In the example given, converting to 8-bit without any scaling would
+result in all pixels simply becoming 255: all useful information in the
+image would be lost.
+
+With scaling but without subtraction, it would make sense to divide all
+pixel values by the maximum in the image divided by the maximum in the
+new bit depth, i.e. by 5000/255. This would then lead to an image in
+which pixels fall into the range 204–255. Much information has clearly
+been lost: 1000 potentially different values have now been squeezed into
+52.
+
+However, if we first subtract the smallest of our 16-bit values (i.e.
+4000), our initial range becomes 0–1000. Divide then by 1000/255 and the
+new values become scaled across the full range of an 8-bit image, i.e.
+0–255. We have still lost information – but considerably less than if we
+had not subtracted the constant first.
+--
+
+****
+
+.Practical
+[.practical]
+****
+Make sure that the `Scale when Converting` option is turned on (it
+should be by default). Then using a suitable 8-bit sample image, e.g.
+menu:File[Open Samples > Boats], explore the effects of brightness/contrast
+settings when increasing or decreasing bit-depths.
+
+How should the contrast be set before reducing bit-depths?
+And can you destroy the image by simply increasing then decreasing the bit-depth?
+
+.Answer
+[.solution]
+--
+It is a good idea to choose btn:[Reset] in the `Brightness/Contrast...` window
+before reducing any bit-depths for 2D images (see
+<<../multidimensional_processing/multidimensional_processing.adoc#sec-type_converting_3d, Processing data with higher dimensions>> to see special considerations related to __z__-stacks or time series).
+
+You can destroy an image by increasing its bit-depth, adjusting the
+brightness/contrast and then decreasing the bit-depth to the original
+one again. This may seem weird, because clearly the final bit-depth is
+_capable_ of storing all the original pixel values. But ImageJ does not
+know this and does not check, so it will simply do its normal
+bit-depth-reducing conversion based on contrast settings.
+--
+
+****

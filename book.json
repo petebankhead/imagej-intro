@@ -1,0 +1,16 @@
+{
+  "author": "Peter Bankhead",
+  "title": "Analyzing fluorescence microscopy images with ImageJ",
+  "plugins": ["mathjax", "scripts"],
+  "pluginsConfig": {
+    "scripts": {
+      "files": [
+        "./my_scripts.js"
+      ]
+    }
+  },
+  "pdf": {
+      "fontSize": 11,
+      "fontFamily": "Optima"
+  }
+}
