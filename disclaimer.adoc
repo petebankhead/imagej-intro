@@ -1,0 +1,7 @@
+Please note that this text is made available as-is and without warranties of any kind.
+
+While I have tried to ensure that the content of this book is accurate, readers are advised to keep in mind that it may still contain errors.  Any use of this information and of the website hosting this ebook is at your own risk.
+
+Readers are also advised to note that this work is not a peer-reviewed piece of scientific literature, but is rather intended as an accessible introduction - which may be improved through time by the contributions and corrections of others.
+
+To this end, please treat the content with suitable caution and consider reporting any errors you find https://www.gitbook.com/book/petebankhead/imagej-intro/discussions[here], so that it may be improved.

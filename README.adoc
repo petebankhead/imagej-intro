@@ -25,4 +25,5 @@ All in all, I hope that someone might find this a useful introduction, and it ma
 
 _Pete, December 2016_
 
+
 image::images/title_cells.jpg[width=400, float=center]

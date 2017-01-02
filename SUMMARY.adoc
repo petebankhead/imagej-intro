@@ -1,5 +1,6 @@
 = Analyzing fluorescence microscopy images with ImageJ
 
+.. link:disclaimer.adoc[Disclaimer]
 .. link:chapters/acknowledgements/acknowledgements.adoc[Acknowledgements]
 .. link:chapters/practicals/practicals.adoc[Questions & practicals]
 .. link:chapters/preface/preface.adoc[Preface]

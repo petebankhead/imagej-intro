@@ -37,10 +37,15 @@ factors.
 
 This chapter gives a very brief overview of the main features of several
 fluorescence microscopes from the point of view of how they balance the
-tradeoffs mentioned. Be aware that it does _not_ do justice to all the
+tradeoffs mentioned. **Be aware that it does _not_ do justice to all the
 complexities, variations and features of the microscopes it describes,
-and therefore should be treated with some caution! But it is included
-nonetheless in case it might be useful to anyone as a starting point.
+and it is not written by an expert in microscopy - and therefore should be treated with some caution!**
+
+But it is included nonetheless in case it might be useful to anyone as a starting pointfootnote:[For a more extensive, and authoritative, description of the topics considered here, consider seeking out the _Handbook of Biological Confocal Microscopy_ edited by James Pawley.  This contains many excellent chapters, some of which may be freely available to download from the publisher's website.].
+
+[[types-of-microscope]]
+Types of microscope
+-------------------
 
 [sidebar]
 [[fig-excitation, 1]]
@@ -66,10 +71,6 @@ microscope, the excitation is confined to only the small, central
 region, while the red light above and below is not capable of exciting
 the fluorophores that have been used.
 --
-
-[[types-of-microscope]]
-Types of microscope
--------------------
 
 [[widefield]]
 Widefield
